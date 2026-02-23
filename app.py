@@ -359,8 +359,8 @@ Yours Sincerely and on behalf of In.Corp,<br/><br/><br/>"""
             handover_fee = format_currency(data.get('handoverFee', '0'))
             if not handover_fee:
                 handover_fee = '0'
-                handover_freq = data.get('handoverFrequency', 'One-time')
-                handover_data.append([
+            handover_freq = data.get('handoverFrequency', 'One-time')
+            handover_data.append([
                     Paragraph("""<font color="#C00000" face="Roboto-Bold"><b>
         Handover from erstwhile service provider of various records under laws as mentioned below.
     This process does not entail conducting a due diligence.</b>
