@@ -17,15 +17,26 @@
             padding: 20px;
             min-height: 100vh;
         }
+
+        .page-layout {
+            max-width: 1500px;
+            margin: 0 auto;
+            display: flex;
+            gap: 24px;
+            align-items: flex-start;
+        }
         
         .container {
-            max-width: 1200px;
-            margin: 0 auto;
+            flex: 1;
+            min-width: 0;
             background: white;
             border-radius: 10px;
             box-shadow: 0 10px 40px rgba(0,0,0,0.2);
             padding: 40px;
         }
+
+        .page-layout { display: contents; }
+        .fee-summary-panel { display: none; }
         
         h1 {
             color: #333;
@@ -273,10 +284,21 @@
     </style>
 </head>
 <body>
+
+<div class="page-layout">
+    <div id="fsHandoverLines" style="display:none"></div>
+    <div id="fsIncorpLines" style="display:none"></div>
+    <div id="fsAccountingLines" style="display:none"></div>
+    <div id="fsTransferLines" style="display:none"></div>
+    <span id="totOneTime" style="display:none"></span>
+    <span id="totMonthly" style="display:none"></span>
+    <span id="totAnnual" style="display:none"></span>
+    <span id="totGrand" style="display:none"></span>
+    <span id="totOTSub" style="display:none"></span>
+
     <div class="container">
         <h1>InCorp Proposal Generator</h1>
-       
-        
+
         <form id="proposalForm">
             <!-- Client Information -->
             <div class="section">
@@ -302,16 +324,34 @@
                     </div>
                 </div>
                 <div class="form-row">
-                    <div class="form-group">
-                        <label for="clientAddress">Client Company Address *</label>
-                        <textarea id="clientAddress" name="clientAddress" required></textarea>
-                    </div>
-                </div>
+    <div class="form-group">
+        <label for="clientAddress1">Address Line 1 *</label>
+        <input type="text" id="clientAddress1" name="clientAddress1" placeholder="Building / Street" required>
+    </div>
+    <div class="form-group">
+        <label for="clientAddress2">Address Line 2 (optional)</label>
+        <input type="text" id="clientAddress2" name="clientAddress2" placeholder="Area / Locality">
+    </div>
+</div>
+<div class="form-row">
+    <div class="form-group">
+        <label for="clientAddress3">Address Line 3 (optional)</label>
+        <input type="text" id="clientAddress3" name="clientAddress3" placeholder="City, State, PIN">
+    </div>
+</div>
                 <div class="form-row">
                     <div class="form-group">
                         <label for="companyYear">Company Established Year</label>
                         <input type="text" id="companyYear" name="companyYear" placeholder="e.g., 2020">
                     </div>
+                      <div class="form-group">
+        <label for="feeType">Fee Type</label>
+        <select id="feeType" name="feeType">
+            <option value="setup" selected>Setup Fees </option>
+            <option value="ongoing">Ongoing Fees </option>
+        </select>
+    </div>
+</div>
                     <div class="form-group">
                         <label for="scopeOfServices">Scope of Services Description</label>
                         <textarea id="scopeOfServices" name="scopeOfServices" placeholder="Describe the scope of work..."></textarea>
@@ -346,7 +386,7 @@
                             </div>
                             <div class="form-group">
                                 <label>Fee (USD)</label>
-                                <input type="number" name="handoverFee" value="0" min="0">
+                                <input type="number" name="handoverFee" value="500" min="0">
                             </div>
                         </div>
                     </div>
@@ -368,7 +408,7 @@
                             </div>
                             <div class="form-group">
                                 <label>Fee (USD)</label>
-                                <input type="number" name="dueDiligenceFee" value="0" min="0">
+                                <input type="number" name="dueDiligenceFee" value="500" min="0">
                             </div>
                         </div>
                     </div>
@@ -392,7 +432,7 @@
                     <div id="incorporationContent" class="service-content">
                         <div class="form-group">
                             <label>Fee (USD)</label>
-                            <input type="number" name="incorporationFee" value="0" min="0">
+                            <input type="number" name="incorporationFee" value="1500" min="0">
                         </div>
                     </div>
 
@@ -403,7 +443,7 @@
                     <div id="gstContent" class="service-content">
                         <div class="form-group">
                             <label>Fee (USD)</label>
-                            <input type="number" name="gstRegFee" value="0" min="0">
+                            <input type="number" name="gstRegFee" value="350" min="0">
                         </div>
                     </div>
 
@@ -414,7 +454,7 @@
                     <div id="fcgprContent" class="service-content">
                         <div class="form-group">
                             <label>Fee (USD)</label>
-                            <input type="number" name="fcgprFee" value="0" min="0">
+                            <input type="number" name="fcgprFee" value="1250 " min="0">
                         </div>
                     </div>
 
@@ -425,7 +465,7 @@
                     <div id="rocContent" class="service-content">
                         <div class="form-group">
                             <label>Fee (USD)</label>
-                            <input type="number" name="rocComplianceFee" value="0" min="0">
+                            <input type="number" name="rocComplianceFee" value="500" min="0">
                         </div>
                     </div>
 
@@ -438,7 +478,7 @@
                     <div id="iecContent" class="service-content">
                         <div class="form-group">
                             <label>Fee (USD)</label>
-                            <input type="number" name="iecFee" value="0" min="0">
+                            <input type="number" name="iecFee" value="200" min="0">
                         </div>
                     </div>
 
@@ -449,7 +489,7 @@
                     <div id="ptContent" class="service-content">
                         <div class="form-group">
                             <label>Fee (USD)</label>
-                            <input type="number" name="ptFee" value="0" min="0">
+                            <input type="number" name="ptFee" value="200" min="0">
                         </div>
                     </div>
 
@@ -460,7 +500,7 @@
                     <div id="benContent" class="service-content">
                         <div class="form-group">
                             <label>Fee (USD)</label>
-                            <input type="number" name="benFee" value="0" min="0">
+                            <input type="number" name="benFee" value="250" min="0">
                         </div>
                     </div>
 
@@ -471,7 +511,7 @@
                     <div id="mgtContent" class="service-content">
                         <div class="form-group">
                             <label>Fee (USD)</label>
-                            <input type="number" name="mgtFee" value="0" min="0">
+                            <input type="number" name="mgtFee" value="250" min="0">
                         </div>
                     </div>
 
@@ -482,7 +522,7 @@
                     <div id="panContent" class="service-content">
                         <div class="form-group">
                             <label>Fee (USD)</label>
-                            <input type="number" name="panCardFee" value="0" min="0">
+                            <input type="number" name="panCardFee" value="300" min="0">
                         </div>
                     </div>
 
@@ -493,7 +533,7 @@
                     <div id="trademarkContent" class="service-content">
                         <div class="form-group">
                             <label>Fee (USD)</label>
-                            <input type="number" name="trademarkFee" value="0" min="0">
+                            <input type="number" name="trademarkFee" value="350" min="0">
                         </div>
                     </div>
 
@@ -504,7 +544,7 @@
                     <div id="foreignPanContent" class="service-content">
                         <div class="form-group">
                             <label>Fee (USD)</label>
-                            <input type="number" name="foreignPanFee" value="0" min="0">
+                            <input type="number" name="foreignPanFee" value="200" min="0">
                         </div>
                     </div>
 
@@ -515,7 +555,7 @@
                     <div id="bankContent" class="service-content">
                         <div class="form-group">
                             <label>Fee (USD)</label>
-                            <input type="number" name="bankAssistFee" value="0" min="0">
+                            <input type="number" name="bankAssistFee" value="250" min="0">
                         </div>
                     </div>
                 </div>
@@ -538,7 +578,7 @@
                     <div id="regOfficeContent" class="service-content">
                         <div class="form-group">
                             <label>Monthly Fee (USD)</label>
-                            <input type="number" name="registeredOfficeFee" value="0" min="0">
+                            <input type="number" name="registeredOfficeFee" value="300" min="0">
                         </div>
                     </div>
 
@@ -549,7 +589,7 @@
                     <div id="nomineeDirContent" class="service-content">
                         <div class="form-group">
                             <label>Monthly Fee (USD)</label>
-                            <input type="number" name="nomineeDirectorFee" value="0" min="0">
+                            <input type="number" name="nomineeDirectorFee" value="350" min="0">
                         </div>
                     </div>
                 </div>
@@ -584,7 +624,7 @@
                         </div>
                         <div class="form-group">
                             <label>Fee (USD)</label>
-                            <input type="number" name="advanceTaxFee" value="0" min="0">
+                            <input type="number" name="advanceTaxFee" value="200" min="0">
                         </div>
                     </div>
                 </div>
@@ -607,7 +647,7 @@
                         </div>
                         <div class="form-group">
                             <label>Fee (USD)</label>
-                            <input type="number" name="tdsFee" value="0" min="0">
+                            <input type="number" name="tdsFee" value="200" min="0">
                         </div>
                     </div>
                 </div>
@@ -629,7 +669,7 @@
                         </div>
                         <div class="form-group">
                             <label>Fee (USD)</label>
-                            <input type="number" name="incomeTaxReturnFee" value="0" min="0">
+                            <input type="number" name="incomeTaxReturnFee" value="500" min="0">
                         </div>
                     </div>
                 </div>
@@ -654,7 +694,7 @@
                         </div>
                         <div class="form-group">
                             <label>Fee (USD)</label>
-                            <input type="number" name="gstComplianceFee" value="0" min="0">
+                            <input type="number" name="gstComplianceFee" value="200" min="0">
                         </div>
                     </div>
                 </div>
@@ -678,7 +718,7 @@
                         </div>
                         <div class="form-group">
                             <label>Fee (USD)</label>
-                            <input type="number" name="companyLawFee" value="0" min="0">
+                            <input type="number" name="companyLawFee" value="200" min="0">
                         </div>
                     </div>
                 </div>
@@ -702,7 +742,7 @@
                         </div>
                         <div class="form-group">
                             <label>Fee (USD)</label>
-                            <input type="number" name="rbiFilingFee" value="0" min="0">
+                            <input type="number" name="rbiFilingFee" value="450" min="0">
                         </div>
                     </div>
                 </div>
@@ -724,7 +764,7 @@
                         </div>
                         <div class="form-group">
                             <label>Fee (USD)</label>
-                            <input type="number" name="masterFilingFee" value="0" min="0">
+                            <input type="number" name="masterFilingFee" value="350" min="0">
                         </div>
                     </div>
                 </div>
@@ -748,7 +788,7 @@
                         </div>
                         <div class="form-group">
                             <label>Fee (USD)</label>
-                            <input type="number" name="accountingSetupFee" value="0" min="0">
+                            <input type="number" name="accountingSetupFee" value="300" min="0">
                         </div>
                     </div>
                 </div>
@@ -798,7 +838,7 @@
                         </div>
                         <div class="form-group">
                             <label>Fee (USD)</label>
-                            <input type="number" name="financialStatementsFee" value="0" min="0">
+                            <input type="number" name="financialStatementsFee" value="500" min="0">
                         </div>
                     </div>
                 </div>
@@ -844,7 +884,7 @@
                         </div>
                         <div class="form-group">
                             <label>Fee (USD)</label>
-                            <input type="number" name="shopPOSHFee" value="0" min="0">
+                            <input type="number" name="shopPOSHFee" value="500" min="0">
                         </div>
                     </div>
                 </div>
@@ -894,7 +934,7 @@
                         </div>
                         <div class="form-group">
                             <label>Fee (USD)</label>
-                            <input type="number" name="labourLawFee" value="0" min="0">
+                            <input type="number" name="labourLawFee" value="200" min="0">
                         </div>
                     </div>
                 </div>
@@ -916,7 +956,7 @@
                         </div>
                         <div class="form-group">
                             <label>Fee (USD)</label>
-                            <input type="number" name="annualReturnsFee" value="0" min="0">
+                            <input type="number" name="annualReturnsFee" value="200" min="0">
                         </div>
                     </div>
                 </div>
@@ -940,7 +980,7 @@
                     <div id="benchmarkingContent" class="service-content">
                         <div class="form-group">
                             <label>Fee (USD)</label>
-                            <input type="number" name="benchmarkingFee" value="0" min="0">
+                            <input type="number" name="benchmarkingFee" value="1500" min="0">
                         </div>
                     </div>
 
@@ -951,10 +991,43 @@
                     <div id="intercompanyContent" class="service-content">
                         <div class="form-group">
                             <label>Fee (USD)</label>
-                            <input type="number" name="intercompanyAgreementFee" value="0" min="0">
+                            <input type="number" name="intercompanyAgreementFee" value="1500" min="0">
                         </div>
                     </div>
                 </div>
+            </div>
+
+            <!-- FEE TOTALS BOX -->
+            <div style="
+                margin: 32px 0 10px 0;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                border-radius: 12px;
+                padding: 20px 28px;
+                color: white;
+            ">
+                <div style="font-size:0.75em; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; opacity:0.8; margin-bottom:14px;">💰 Fee Summary</div>
+                <div style="display:flex; flex-wrap:wrap; gap:12px 32px; align-items:center;">
+                    <div>
+                        <div style="font-size:0.72em; opacity:0.75; margin-bottom:3px;">One-time</div>
+                        <div style="font-size:1.3em; font-weight:800;" id="boxOneTime">USD 0</div>
+                    </div>
+                    <div style="opacity:0.3; font-size:1.4em;">|</div>
+                    <div>
+                        <div style="font-size:0.72em; opacity:0.75; margin-bottom:3px;">Monthly</div>
+                        <div style="font-size:1.3em; font-weight:800;" id="boxMonthly">USD 0</div>
+                    </div>
+                    <div style="opacity:0.3; font-size:1.4em;">|</div>
+                    <div>
+                        <div style="font-size:0.72em; opacity:0.75; margin-bottom:3px;">Annual</div>
+                        <div style="font-size:1.3em; font-weight:800;" id="boxAnnual">USD 0</div>
+                    </div>
+                    <div style="margin-left:auto; background:rgba(255,255,255,0.18); border-radius:10px; padding:10px 20px; text-align:center;">
+                        <div style="font-size:0.72em; opacity:0.85; margin-bottom:3px;">Total Annual Cost</div>
+                        <div style="font-size:1.6em; font-weight:900;" id="boxGrand">USD 0</div>
+                        <div style="font-size:0.68em; opacity:0.7; margin-top:2px;">(monthly×12 + annual) + one-time: <span id="boxOT">USD 0</span></div>
+                    </div>
+                </div>
+                <div style="font-size:0.68em; opacity:0.6; margin-top:10px;">* Excludes 18% GST</div>
             </div>
 
             <button type="submit" class="generate-btn">Generate Proposal PDF</button>
@@ -971,7 +1044,8 @@
         <div class="success-message" id="successMessage">
             ✓ Proposal generated successfully! Download will start automatically.
         </div>
-    </div>
+    </div><!-- end .container -->
+</div><!-- end .page-layout -->
 
     <script>
         let accountingEntryCount = 0;
@@ -1214,6 +1288,132 @@
         document.getElementById('loading').style.display = 'none';
     }
 }
+
+// ===== FEE SUMMARY ENGINE =====
+// Maps: checkboxId -> { label, feeField, freq }
+// freq: 'onetime' | 'monthly' | 'annual' | 'perApplicant'
+const FEE_MAP = {
+    // Section A - Handover
+    includeHandover:       { label: 'Handover service',          feeField: 'handoverFee',              freq: 'onetime',  section: 'fsHandoverLines' },
+    includeDueDiligence:   { label: 'Due diligence',             feeField: 'dueDiligenceFee',           freq: 'onetime',  section: 'fsHandoverLines' },
+
+    // Section B - Incorporation
+    includeIncorporation:  { label: 'Incorporation',             feeField: 'incorporationFee',          freq: 'onetime',  section: 'fsIncorpLines' },
+    includeGST:            { label: 'GST Registration',          feeField: 'gstRegFee',                 freq: 'onetime',  section: 'fsIncorpLines' },
+    includeFCGPR:          { label: 'FCGPR Filing',              feeField: 'fcgprFee',                  freq: 'onetime',  section: 'fsIncorpLines' },
+    includeROC:            { label: 'ROC Compliances',           feeField: 'rocComplianceFee',          freq: 'onetime',  section: 'fsIncorpLines' },
+    includeIEC:            { label: 'IEC Code',                  feeField: 'iecFee',                    freq: 'onetime',  section: 'fsIncorpLines' },
+    includePT:             { label: 'Profession Tax',            feeField: 'ptFee',                     freq: 'onetime',  section: 'fsIncorpLines' },
+    includeBEN:            { label: 'BEN-2 Filing',              feeField: 'benFee',                    freq: 'onetime',  section: 'fsIncorpLines' },
+    includeMGT:            { label: 'MGT Forms',                 feeField: 'mgtFee',                    freq: 'onetime',  section: 'fsIncorpLines' },
+    includePAN:            { label: 'Physical PAN Card',         feeField: 'panCardFee',                freq: 'onetime',  section: 'fsIncorpLines' },
+    includeTrademark:      { label: 'Trademark Registration',    feeField: 'trademarkFee',              freq: 'onetime',  section: 'fsIncorpLines' },
+    includeForeignPAN:     { label: 'PAN for Foreign Director',  feeField: 'foreignPanFee',             freq: 'onetime',  section: 'fsIncorpLines' },
+    includeBankAssist:     { label: 'Bank Account Assistance',   feeField: 'bankAssistFee',             freq: 'onetime',  section: 'fsIncorpLines' },
+    includeRegOffice:      { label: 'Registered Office',         feeField: 'registeredOfficeFee',       freq: 'monthly',  section: 'fsIncorpLines' },
+    includeNomineeDir:     { label: 'Nominee Director',          feeField: 'nomineeDirectorFee',        freq: 'monthly',  section: 'fsIncorpLines' },
+
+    // Section C - Accounting / Tax / Payroll
+    includeAdvanceTax:     { label: 'Advance Tax',               feeField: 'advanceTaxFee',             freq: 'monthly',  section: 'fsAccountingLines' },
+    includeTDS:            { label: 'TDS Compliances',           feeField: 'tdsFee',                    freq: 'monthly',  section: 'fsAccountingLines' },
+    includeIncomeTax:      { label: 'Income Tax Return',         feeField: 'incomeTaxReturnFee',        freq: 'annual',   section: 'fsAccountingLines' },
+    includeGSTComp:        { label: 'GST Compliances',           feeField: 'gstComplianceFee',          freq: 'monthly',  section: 'fsAccountingLines' },
+    includeCompanyLaw:     { label: 'Company Law',               feeField: 'companyLawFee',             freq: 'monthly',  section: 'fsAccountingLines' },
+    includeRBIFiling:      { label: 'RBI Annual Filing',         feeField: 'rbiFilingFee',              freq: 'annual',   section: 'fsAccountingLines' },
+    includeMasterFiling:   { label: 'Master Filing 3CEAA',       feeField: 'masterFilingFee',           freq: 'annual',   section: 'fsAccountingLines' },
+    includeAcctSetup:      { label: 'Accounting Software Setup', feeField: 'accountingSetupFee',        freq: 'onetime',  section: 'fsAccountingLines' },
+    includeAcctMaint:      { label: 'Books Maintenance',         feeField: 'accountingMaintenanceFee',  freq: 'monthly',  section: 'fsAccountingLines' },
+    includeFinStmt:        { label: 'Financial Statements',      feeField: 'financialStatementsFee',    freq: 'annual',   section: 'fsAccountingLines' },
+    includePayrollSetup:   { label: 'Payroll Setup',             feeField: 'payrollSetupFee',           freq: 'onetime',  section: 'fsAccountingLines' },
+    includeShopPOSH:       { label: 'Shop & POSH Setup',         feeField: 'shopPOSHFee',               freq: 'onetime',  section: 'fsAccountingLines' },
+    includePayrollProc:    { label: 'Payroll Processing',        feeField: 'payrollProcessingFee',      freq: 'monthly',  section: 'fsAccountingLines' },
+    includeLabourLaw:      { label: 'Labour Law Compliances',    feeField: 'labourLawFee',              freq: 'monthly',  section: 'fsAccountingLines' },
+    includeAnnualReturns:  { label: 'Annual Labour Returns',     feeField: 'annualReturnsFee',          freq: 'annual',   section: 'fsAccountingLines' },
+
+    // Section D - Transfer Pricing
+    includeBenchmarking:   { label: 'Benchmarking',              feeField: 'benchmarkingFee',           freq: 'onetime',  section: 'fsTransferLines' },
+    includeIntercompany:   { label: 'Inter-company Agreement',   feeField: 'intercompanyAgreementFee',  freq: 'onetime',  section: 'fsTransferLines' },
+};
+
+const FREQ_LABELS = { onetime: 'one-time', monthly: '/mo', annual: '/yr' };
+const SECTION_IDS = ['fsHandoverLines', 'fsIncorpLines', 'fsAccountingLines', 'fsTransferLines'];
+
+function updateFeeSummary() {
+    // Group lines by section
+    const sectionLines = {};
+    SECTION_IDS.forEach(s => sectionLines[s] = []);
+
+    let totalOnetime = 0, totalMonthly = 0, totalAnnual = 0;
+
+    for (const [cbId, cfg] of Object.entries(FEE_MAP)) {
+        const cb = document.getElementById(cbId);
+        if (!cb || !cb.checked) continue;
+
+        const feeInput = document.querySelector(`[name="${cfg.feeField}"]`);
+        const feeVal = feeInput ? (parseFloat(feeInput.value) || 0) : 0;
+
+        sectionLines[cfg.section].push({ label: cfg.label, val: feeVal, freq: cfg.freq });
+
+        if (cfg.freq === 'onetime')  totalOnetime += feeVal;
+        if (cfg.freq === 'monthly')  totalMonthly += feeVal;
+        if (cfg.freq === 'annual')   totalAnnual  += feeVal;
+    }
+
+    // Render each section
+    SECTION_IDS.forEach(secId => {
+        const container = document.getElementById(secId);
+        const lines = sectionLines[secId];
+        if (lines.length === 0) {
+            container.innerHTML = '<div class="fee-empty">No services selected</div>';
+        } else {
+            container.innerHTML = lines.map(l =>
+                `<div class="fee-line">
+                    <span class="fee-name">${l.label}</span>
+                    <span class="fee-val">USD ${l.val.toLocaleString()}</span>
+                    <span class="fee-freq">${FREQ_LABELS[l.freq]}</span>
+                </div>`
+            ).join('');
+        }
+    });
+
+    // Totals
+    const grandAnnual = totalMonthly * 12 + totalAnnual;
+    document.getElementById('totOneTime').textContent = `USD ${totalOnetime.toLocaleString()}`;
+    document.getElementById('totMonthly').textContent = `USD ${totalMonthly.toLocaleString()} /mo`;
+    document.getElementById('totAnnual').textContent  = `USD ${totalAnnual.toLocaleString()} /yr`;
+    document.getElementById('totGrand').textContent   = `USD ${grandAnnual.toLocaleString()}`;
+    document.getElementById('totOTSub').textContent   = `USD ${totalOnetime.toLocaleString()}`;
+
+    // Update totals box
+    document.getElementById('boxOneTime').textContent = `USD ${totalOnetime.toLocaleString()}`;
+    document.getElementById('boxMonthly').textContent = `USD ${totalMonthly.toLocaleString()}`;
+    document.getElementById('boxAnnual').textContent  = `USD ${totalAnnual.toLocaleString()}`;
+    document.getElementById('boxGrand').textContent   = `USD ${grandAnnual.toLocaleString()}`;
+    document.getElementById('boxOT').textContent      = `USD ${totalOnetime.toLocaleString()}`;
+
+    // Legacy bar elements (hidden but kept to avoid JS errors)
+    try { document.getElementById('barOneTime').textContent = `USD ${totalOnetime.toLocaleString()}`; } catch(e){}
+    try { document.getElementById('barMonthly').textContent = `USD ${totalMonthly.toLocaleString()}`; } catch(e){}
+    try { document.getElementById('barAnnual').textContent  = `USD ${totalAnnual.toLocaleString()}`; } catch(e){}
+    try { document.getElementById('barGrand').textContent   = `USD ${grandAnnual.toLocaleString()}`; } catch(e){}
+}
+
+// Update fee summary whenever any checkbox changes
+document.addEventListener('change', function(e) {
+    if (e.target.type === 'checkbox') {
+        updateFeeSummary();
+    }
+});
+
+// Listen to all fee inputs for live updates
+document.addEventListener('input', function(e) {
+    if (e.target.type === 'number' || e.target.type === 'text') {
+        updateFeeSummary();
+    }
+});
+
+// Initial render
+updateFeeSummary();
     </script>
 </body>
 </html>
