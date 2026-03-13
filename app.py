@@ -16,11 +16,13 @@ import io
 import os
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
+from reportlab.pdfbase.pdfmetrics import registerFontFamily
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 app = Flask(__name__)
 CORS(app)
 application = app 
+
 try:
     pdfmetrics.registerFont(TTFont('MicrosoftSansSerif', os.path.join(BASE_DIR, 'microsoftsansserif.ttf')))
     print("✅ Microsoft Sans Serif font registered successfully")
@@ -28,16 +30,60 @@ except Exception as e:
     print(f"⚠️ Font registration failed: {e}")
 
 try:
-    pdfmetrics.registerFont(TTFont('Roboto',os.path.join(BASE_DIR, 'Roboto-Regular.ttf')))
-    print("✅ Microsoft Sans Serif font registered successfully")
+    # micross.ttf is the italic variant of Microsoft Sans Serif
+    pdfmetrics.registerFont(TTFont('MicrosoftSansSerif-Italic', os.path.join(BASE_DIR, 'micross.ttf')))
+    print("✅ Microsoft Sans Serif Italic registered")
 except Exception as e:
-    print(f"⚠️ Font registration failed: {e}")
+    try:
+        # fallback: use regular as italic (no visual italic, but no crash)
+        pdfmetrics.registerFont(TTFont('MicrosoftSansSerif-Italic', os.path.join(BASE_DIR, 'microsoftsansserif.ttf')))
+        print("⚠️ Using regular as italic fallback for MicrosoftSansSerif")
+    except:
+        pass
+
 try:
-    pdfmetrics.registerFont(TTFont('Roboto-Bold', os.path.join(BASE_DIR,'Roboto-Bold.ttf')))
-    print("✅ Microsoft Sans Serif font registered successfully")
+    pdfmetrics.registerFont(TTFont('Roboto', os.path.join(BASE_DIR, 'Roboto-Regular.ttf')))
+    print("✅ Roboto Regular registered")
 except Exception as e:
     print(f"⚠️ Font registration failed: {e}")
 
+try:
+    pdfmetrics.registerFont(TTFont('Roboto-Bold', os.path.join(BASE_DIR, 'Roboto-Bold.ttf')))
+    print("✅ Roboto Bold registered")
+except Exception as e:
+    print(f"⚠️ Font registration failed: {e}")
+
+try:
+    pdfmetrics.registerFont(TTFont('Roboto-Italic', os.path.join(BASE_DIR, 'Roboto-Italic.ttf')))
+    print("✅ Roboto Italic registered")
+except Exception as e:
+    print(f"⚠️ Roboto-Italic.ttf not found in {BASE_DIR} - italic text will use Roboto-Regular as fallback")
+    print(f"   Download from: https://fonts.google.com/specimen/Roboto and place Roboto-Italic.ttf in the app folder")
+    try:
+        pdfmetrics.registerFont(TTFont('Roboto-Italic', os.path.join(BASE_DIR, 'Roboto-Regular.ttf')))
+    except:
+        pass
+
+# Register font families so <b>, <i>, <b><i> tags work correctly in Paragraphs
+try:
+    registerFontFamily('Roboto',
+        normal='Roboto',
+        bold='Roboto-Bold',
+        italic='Roboto-Italic',
+        boldItalic='Roboto-Bold')
+    print("✅ Roboto font family registered")
+except Exception as e:
+    print(f"⚠️ Roboto font family registration failed: {e}")
+
+try:
+    registerFontFamily('MicrosoftSansSerif',
+        normal='MicrosoftSansSerif',
+        bold='MicrosoftSansSerif',
+        italic='MicrosoftSansSerif-Italic',
+        boldItalic='MicrosoftSansSerif-Italic')
+    print("✅ MicrosoftSansSerif font family registered")
+except Exception as e:
+    print(f"⚠️ MicrosoftSansSerif font family registration failed: {e}")
 def format_currency(amount):
     """Format number as currency WITHOUT dollar sign - integers only"""
     if not amount or amount == '' or amount == '0':
@@ -171,7 +217,12 @@ class InCorpCanvas(pdfcanvas.Canvas):
 @app.route('/')
 def index():
     """Serve the HTML form"""
-    return send_file(os.path.join(BASE_DIR, 'incorp_form.html'))
+    from flask import make_response
+    response = make_response(send_file(os.path.join(BASE_DIR, 'incorp_form.html')))
+    response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
+    response.headers['Pragma'] = 'no-cache'
+    response.headers['Expires'] = '0'
+    return response
 
 
 # ===================== FIX 1: build_pdf_elements is now its own TOP-LEVEL function =====================
@@ -192,85 +243,106 @@ def build_pdf_elements(data):
     elements = []
     styles = getSampleStyleSheet()
     
-    title_style = ParagraphStyle(
-        'TitleStyle',
-        parent=styles['Title'],
-        fontSize=20,
-        textColor=colors.HexColor('#C00000'),
-        alignment=TA_CENTER,
-        fontName='Roboto-Bold',
-        spaceAfter=20
-    )
-    
-    
+    # SCOPE OF SERVICES / FEES main headings — large red bold
     heading1_style = ParagraphStyle(
         'Heading1Custom',
         parent=styles['Heading1'],
-        fontSize=12,
-        textColor=colors.HexColor('#C00000'),
+        fontSize=14,
+        textColor=colors.HexColor('#BB2121'),
         fontName='Roboto-Bold',
         spaceAfter=10,
-        spaceBefore=12,
-
+        spaceBefore=14,
+        leading=18,
     )
     
+    # A. B. C. D. sub-section headings — smaller red bold with indent
     heading2_style = ParagraphStyle(
         'Heading2Custom',
         parent=styles['Heading2'],
         fontSize=10,
         textColor=colors.HexColor('#C00000'),
         fontName='Roboto-Bold',
-        spaceAfter=8,
-        spaceBefore=10
+        spaceAfter=6,
+        spaceBefore=10,
+        leading=14,
+        leftIndent=4,
     )
     
+    # Standard body text — black, justified, 9pt
     normal_style = ParagraphStyle(
         'NormalCustom',
         parent=styles['Normal'],
-        fontSize=10,
-        leading=12,
+        fontSize=9,
+        leading=13,
         fontName='MicrosoftSansSerif',
-        textColor=colors.HexColor("#555555"),
+        textColor=colors.HexColor("#000000"),
         alignment=TA_JUSTIFY,
-        rightIndent=0,         # ✅ ADD
-firstLineIndent=0  
-    )  
+        rightIndent=0,
+        firstLineIndent=0
+    )
+
+    # Bold body text (RE: FEE PROPOSAL, signatory block)
     normal_style1 = ParagraphStyle(
-        'NormalCustom',
+        'NormalCustom1',
         parent=styles['Normal'],
-        fontSize=10,
-        leading=12,
+        fontSize=9,
+        leading=13,
         fontName='Roboto-Bold',
         textColor=colors.black,
         alignment=TA_JUSTIFY,
-        leftIndent=0, 
-        rightIndent=0,         # ✅ ADD
-firstLineIndent=0  
+        leftIndent=0,
+        rightIndent=0,
+        firstLineIndent=0
     )
 
-    
+    # Small / footnote / note text — 8pt
     small_style = ParagraphStyle(
         'SmallStyle',
         parent=styles['Normal'],
-        fontSize=10,
-        leading=10,
+        fontSize=8,
+        leading=11,
         fontName='MicrosoftSansSerif',
-        bulletIndent=10,        # ✅ ADD THIS
-leftIndent=0 ,          # ✅ ADD THIS
-bulletFontName='Symbol' ,
-rightIndent=0,         # ✅ ADD
-firstLineIndent=0  
+        textColor=colors.HexColor("#000000"),
+        bulletIndent=10,
+        leftIndent=0,
+        bulletFontName='Symbol',
+        rightIndent=0,
+        firstLineIndent=0
     )
+
     note_style = ParagraphStyle(
-'NoteStyle',
-parent=styles['Normal'],
-fontSize=8,  # ✅ Smaller font
-leading=9,
-fontName='MicrosoftSansSerif',
-textColor=colors.HexColor("#555555"),  # ✅ Gray text
-spaceBefore=6,
-spaceAfter=6
-)
+        'NoteStyle',
+        parent=styles['Normal'],
+        fontSize=8,
+        leading=11,
+        fontName='MicrosoftSansSerif',
+        textColor=colors.HexColor("#000000"),
+        spaceBefore=4,
+        spaceAfter=4
+    )
+
+    italic_style = ParagraphStyle(
+        'ItalicStyle',
+        parent=styles['Normal'],
+        fontSize=8,
+        leading=11,
+        fontName='Roboto-Italic',
+        textColor=colors.HexColor("#000000"),
+        spaceBefore=2,
+        spaceAfter=2
+    )
+
+    italic_normal_style = ParagraphStyle(
+        'ItalicNormalStyle',
+        parent=styles['Normal'],
+        fontSize=9,
+        leading=13,
+        fontName='Roboto-Italic',
+        textColor=colors.HexColor("#000000"),
+        spaceBefore=2,
+        spaceAfter=2,
+        alignment=TA_JUSTIFY
+    )
     
     # ==================== PAGE 1 - COVER PAGE ====================
     cover_image_path = None
@@ -289,7 +361,7 @@ spaceAfter=6
         elements.append(Paragraph("LEADING ASIA PACIFIC CORPORATE SOLUTIONS PROVIDER", 
                                  ParagraphStyle('cover', fontSize=10, alignment=TA_CENTER, textColor=colors.grey)))
         elements.append(Spacer(1, 0.3*inch))
-        elements.append(Paragraph("INCORP GROUP PROPOSAL", title_style))
+        elements.append(Paragraph("INCORP GROUP PROPOSAL", ParagraphStyle('title', fontSize=22, alignment=TA_CENTER, fontName='Roboto-Bold', textColor=colors.HexColor('#C00000'))))
         elements.append(Spacer(1, 0.5*inch))
         elements.append(Paragraph(company_name, 
                                  ParagraphStyle('company', fontSize=18, alignment=TA_CENTER, 
@@ -309,7 +381,14 @@ spaceAfter=6
     elements.append(Paragraph(data.get('clientName', 'Client Name'), normal_style))
     elements.append(Paragraph(data.get('clientDesignation', 'Client Designation'), normal_style))
     elements.append(Paragraph(data.get('clientCompany', 'Client Company Name'), normal_style))
-    elements.append(Paragraph(data.get('clientAddress', 'Client Company Address'), normal_style))
+    if data.get('clientAddress1'):
+        elements.append(Paragraph(data.get('clientAddress1'), normal_style))
+    if data.get('clientAddress2'):
+        elements.append(Paragraph(data.get('clientAddress2'), normal_style))
+    if data.get('clientAddress3'):
+         elements.append(Paragraph(data.get('clientAddress3'), normal_style))
+    if not any([data.get('clientAddress1'), data.get('clientAddress2'), data.get('clientAddress3')]):
+        elements.append(Paragraph(data.get('clientAddress', 'Client Company Address'), normal_style))
     elements.append(Spacer(1, 20))
     
     elements.append(Paragraph(f"Dear {data.get('clientName', 'XXXX').split()[0]},", normal_style))
@@ -319,7 +398,7 @@ spaceAfter=6
     
     letter_text = """We are pleased to be presenting our proposal to you.<br/><br/>
 Our team of experienced professionals work very closely with clients on various corporate, accounting, compliance and governance matter and identify the unique requirements of individual organizations. As a strong believer of long-term partnerships, we are committed to providing tailored solutions that not only meet our clients' objectives, but also giving them a peace of mind to focus on their core businesses.<br/><br/>
-The following pages outline our services tailor made to you and we trust that our proposal meets your expectations. We are excited to work with you and look forward to a long and mutually beneficial working relationship with you and the company.<br/><br/>,<br/><br/>
+The following pages outline our services tailor made to you and we trust that our proposal meets your expectations. We are excited to work with you and look forward to a long and mutually beneficial working relationship with you and the company.<br/><br/>
 Yours Sincerely and on behalf of In.Corp,<br/><br/><br/>"""
     text="""<b>CA Bansi Shah</b><br/>
 <b>Lead – International clients group</b><br/>
@@ -333,412 +412,422 @@ Yours Sincerely and on behalf of In.Corp,<br/><br/><br/>"""
     elements.append(Paragraph("SCOPE OF SERVICES", heading1_style))
     elements.append(Spacer(1, 1))
     
-    scope_text = data.get('scopeOfServices', '[NOTE TO INCORP STAFF - STAFF TO DESCRIBE IN BULLET POINTS THE ENTIRE SCOPE OF WORKS REQUIRED BY THE CLIENT/SERVICES TO BE RENDERED BY US + CLIENT PROFILE]')
-    elements.append(Paragraph(scope_text, normal_style))
+    scope_text = data.get('scopeOfServices', '')
+    for line in scope_text.split('\n'):
+        line = line.strip()
+        if line:
+            elements.append(Paragraph(f'• {line}', normal_style))
     elements.append(Spacer(1, 12))
     
     elements.append(Paragraph("FEES", heading1_style))
 
-    fees_intro = """This section outlines the estimated fees for InCorp's services of your company. Our fee structure includes initial setup fees, as well as ongoing charges that may be billed monthly, quarterly, or annually. Additionally, fees may be incurred based on the time spent on specific tasks or on a per-instance basis. For any additional services not encompassed by this proposal that may incur, additional charges, we will receive your approval before any work commences. Please note that all fees mentioned are in US Dollars, exclusive of the prevailing Goods and Services Tax (GST) / Value Added Tax (VAT)."""
+    fee_type = data.get('feeType', '')
+
+    if fee_type == 'setup':
+        fee_line = "Our fee structure includes initial setup fees."
+    elif fee_type == 'ongoing':
+        fee_line = "Our fee structure includes ongoing charges that may be billed monthly, quarterly, or annually."
+    else:
+        fee_line = "Our fee structure includes initial setup fees."
+
+    fees_intro = f"""This section outlines the estimated fees for InCorp's services of your company. {fee_line} Additionally, fees may be incurred based on the time spent on specific tasks or on a per-instance basis. For any additional services not encompassed by this proposal that may incur, additional charges, we will receive your approval before any work commences. Please note that all fees mentioned are in US Dollars, exclusive of the prevailing Goods and Services Tax (GST) / Value Added Tax (VAT)."""
     elements.append(Paragraph(fees_intro, normal_style))
     elements.append(Spacer(1, 6))
     
+    # ==================== DYNAMIC SECTION LETTER ASSIGNMENT ====================
+    section_keys = [
+        ('handover',      any([data.get('includeHandover') == 'on', data.get('includeDueDiligence') == 'on'])),
+        ('incorporation', any([data.get('includeIncorporation') == 'on', data.get('includeGST') == 'on',
+                               data.get('includeFCGPR') == 'on', data.get('includeROC') == 'on',
+                               data.get('includeIEC') == 'on', data.get('includePT') == 'on',
+                               data.get('includeBEN') == 'on', data.get('includeMGT') == 'on',
+                               data.get('includePAN') == 'on', data.get('includeTrademark') == 'on',
+                               data.get('includeForeignPAN') == 'on', data.get('includeBankAssist') == 'on',
+                               data.get('includeRegOffice') == 'on', data.get('includeNomineeDir') == 'on'])),
+        ('accounting',    any([data.get('includeAdvanceTax') == 'on', data.get('includeTDS') == 'on',
+                               data.get('includeIncomeTax') == 'on', data.get('includeGSTComp') == 'on',
+                               data.get('includeCompanyLaw') == 'on', data.get('includeRBIFiling') == 'on',
+                               data.get('includeMasterFiling') == 'on', data.get('includeAcctSetup') == 'on',
+                               data.get('includeAcctMaint') == 'on', data.get('includeFinStmt') == 'on',
+                               data.get('includePayrollSetup') == 'on', data.get('includeShopPOSH') == 'on',
+                               data.get('includePayrollProc') == 'on', data.get('includeLabourLaw') == 'on',
+                               data.get('includeAnnualReturns') == 'on'])),
+        ('transfer',      any([data.get('includeBenchmarking') == 'on', data.get('includeIntercompany') == 'on'])),
+    ]
+    letters = {}
+    counter = 0
+    for key, is_selected in section_keys:
+        if is_selected:
+            letters[key] = chr(65 + counter)
+            counter += 1
+
     # ==================== PAGE 7 - A. HANDOVER SERVICE ====================
-    elements.append(Paragraph("A. One time Handover Service", heading2_style))
-    elements.append(Spacer(1, 1))
-    
-    handover_intro = f"""Since the company has been in existence since {data.get('companyYear', 'YYYY')}, we shall need to undertake a handover of the current financial, secretarial, payroll and other records of the company from current service provider."""
-    elements.append(Paragraph(handover_intro, normal_style))
-    elements.append(Spacer(1, 10))
-    
-    
-    handover_data = [['Services', 'Frequency', 'Fee (In USD)']]
-    
-    if data.get('includeHandover') == 'on':
-        handover_fee = format_currency(data.get('handoverFee', '0'))
-        if not handover_fee:
-            handover_fee = '0'
+    if 'handover' in letters:
+        elements.append(Paragraph(f"{letters['handover']}. One time Handover Service", heading2_style))
+        elements.append(Spacer(1, 1))
+        handover_intro = f"""Since the company has been in existence since {data.get('companyYear', 'YYYY')}, we shall need to undertake a handover of the current financial, secretarial, payroll and other records of the company from current service provider."""
+        elements.append(Paragraph(handover_intro, normal_style))
+        elements.append(Spacer(1, 10))
+
+        handover_data = [['Services', 'Frequency', 'Fee (In USD)']]
+
+        if data.get('includeHandover') == 'on':
+            handover_fee = format_currency(data.get('handoverFee', '0'))
+            if not handover_fee:
+                handover_fee = '500'
             handover_freq = data.get('handoverFrequency', 'One-time')
             handover_data.append([
-                Paragraph("""<font color="#C00000" face="Roboto-Bold"><b>
-    Handover from erstwhile service provider of various records under laws as mentioned below.
-This process does not entail conducting a due diligence.</b>
-</font><br/>
+                Paragraph("""<font color="#C00000" face="Roboto-Bold"><b>Handover from erstwhile service provider of various records under laws as mentioned below.
+This process does not entail conducting a due diligence.</b></font><br/>
 • GST laws/regulations<br/>
 • Income Tax Act, 1961<br/>
 • Company's Act, 2013<br/>
 • Foreign Exchange Rules & Regulations""", normal_style),
-            handover_freq,
-            handover_fee
-        ])
-    
+                handover_freq,
+                handover_fee
+            ])
 
-    if data.get('includeDueDiligence') == 'on':
-        dd_fee = format_currency(data.get('dueDiligenceFee', '0'))
-        if not dd_fee:
-            dd_fee = '0'
-        dd_freq = data.get('ddFrequency', 'One-time')
-        handover_data.append([
-            Paragraph("""<font color="#C00000" face="Roboto-Bold">Basic due diligence from perspective of*–</font><br/>
+        if data.get('includeDueDiligence') == 'on':
+            dd_fee = format_currency(data.get('dueDiligenceFee', '0'))
+            if not dd_fee:
+                dd_fee = '500 per year '
+            dd_freq = data.get('ddFrequency', 'One-time')
+            handover_data.append([
+                Paragraph("""<font color="#C00000" face="Roboto-Bold">Basic due diligence from perspective of*–</font><br/>
 • Company's Act, 2013<br/>
 • Income Tax Act, 1961<br/>
 • Goods and Service Tax Act, 2017<br/>
 • Foreign Exchange Management Act, 1999""", normal_style),
-            dd_freq,
-            dd_fee
-        ])
-    
-    if len(handover_data) > 1:
-        handover_table = Table(handover_data, colWidths=[4.4*inch, 1.5*inch, 1.5*inch])
-        handover_table.setStyle(TableStyle([
-            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor("#FFFFFF")),
-            ('TEXTCOLOR', (0, 0), (-1, 0), colors.black),
-            ('FONTNAME', (0, 0), (-1, 0), 'MicrosoftSansSerif'),
-            ('FONTSIZE', (0, 0), (2, 0), 10),  # ✅ Header row only - 9 se 10
-('FONTSIZE', (0, 1), (-1, -1), 9),  
-            ('ALIGN', (1, 0), (2, -1), 'CENTRE'),
-            ('GRID', (0, 1), (-1, -1), 0.5, colors.black),
-            ('VALIGN', (0, 0), (-1, -1), 'TOP'),
-            ('TOPPADDING', (0, 0), (-1, -1), 8),
-            ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
-            ('LEFTPADDING', (0, 1), (0, -1), 2),
-('RIGHTPADDING', (0, 0), (-1, -1), 8),
+                dd_freq,
+                dd_fee
+            ])
 
-('LINEBELOW', (0, 0), (-1, 0), 0.75, colors.black),  # ✅ sirf bottom border
-('LINEBEFORE', (0, 0), (-1, 0), 0, colors.white),    # ✅ left border NONE
-('LINEAFTER', (0, 0), (-1, 0), 0, colors.white),     # ✅ right border NONE
-('LINEABOVE', (0, 0), (-1, 0), 0, colors.white), 
-        ]))
-        elements.append(handover_table)
-        elements.append(Spacer(1, 10))
-        elements.append(Paragraph("""<i><b>*Any fees for rectification (or) completion of pending past compliances shall attract additional fees and we shall seek your approval prior to commencement of that work.</b></i>""", small_style))
-        elements.append(Spacer(1, 10))
-    notes_a = """<b><u><font color="#002060">Note:</font></u></b><br/>
-        <br/>
+        if len(handover_data) > 1:
+            handover_table = Table(handover_data, colWidths=[4.4*inch, 1.5*inch, 1.5*inch])
+            handover_table.setStyle(TableStyle([
+                ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor("#FFFFFF")),
+                ('TEXTCOLOR', (0, 0), (-1, 0), colors.black),
+                ('FONTNAME', (0, 0), (-1, 0), 'MicrosoftSansSerif'),
+                ('FONTSIZE', (0, 0), (2, 0), 10),
+                ('FONTSIZE', (0, 1), (-1, -1), 9),
+                ('ALIGN', (1, 0), (2, -1), 'CENTRE'),
+                ('GRID', (0, 1), (-1, -1), 0.5, colors.black),
+                ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+                ('TOPPADDING', (0, 0), (-1, -1), 8),
+                ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
+                ('LEFTPADDING', (0, 1), (0, -1), 2),
+                ('RIGHTPADDING', (0, 0), (-1, -1), 8),
+                ('LINEBELOW', (0, 0), (-1, 0), 0.75, colors.black),
+                ('LINEBEFORE', (0, 0), (-1, 0), 0, colors.white),
+                ('LINEAFTER', (0, 0), (-1, 0), 0, colors.white),
+                ('LINEABOVE', (0, 0), (-1, 0), 0, colors.white),
+            ]))
+            elements.append(handover_table)
+            elements.append(Spacer(1, 10))
+            elements.append(Paragraph("*Any fees for rectification (or) completion of pending past compliances shall attract additional fees and we shall seek your approval prior to commencement of that work.", italic_style))
+            elements.append(Spacer(1, 10))
+
+        notes_a = """<b><u><font color="#002060">Note:</font></u></b><br/><br/>
 • All fees quoted above exclude 18% GST<br/>
 • Professional fees exclude any fees towards regularisation of past non compliances.<br/>
-• Advance of 100% of the above selected option.<br/>
-<br/>"""
-    text_a=""" <b>* Any other services not specifically quoted above and not specifically agreed separately shall be chargeable as under:</b> <br/><br/>
-<b><i>For Partner: USD 300 per Hour</i> </b><br/>
-<br/>
- <b><i>For Associates: USD 200 per Hour</i></b>"""
-    elements.append(Paragraph(notes_a, normal_style))
-    elements.append(Paragraph(text_a, small_style))
+• Advance of 100% of the above selected option.<br/><br/>"""
+        elements.append(Paragraph(notes_a, normal_style))
+        elements.append(Paragraph("* Any other services not specifically quoted above and not specifically agreed separately shall be chargeable as under:", italic_style))
+        elements.append(Spacer(1, 4))
+        elements.append(Paragraph("<b>For Partner: USD 300 per Hour</b>", italic_style))
+        elements.append(Spacer(1, 2))
+        elements.append(Paragraph("<b>For Associates: USD 200 per Hour</b>", italic_style))
     
     
     # ==================== PAGE 8 - B. INCORPORATION SERVICE ====================
-    elements.append(Spacer(1, 12))
-    elements.append(Paragraph("B. Incorporation / Secretarial Service and Mandatory Registrations post Incorporation", heading2_style))
-    elements.append(Spacer(1, 2))
-    
-    inc_data = [['Services', 'One-time Fee']]
-    
-    if data.get('includeIncorporation') == 'on':
-        inc_fee = format_currency(data.get('incorporationFee', '0'))
-        if not inc_fee:
-            inc_fee = '0'
-        inc_data.append([
-            Paragraph("""<font color="#C00000" face="Roboto-Bold"><b>Incorporation</b></font><br/>
+    if 'incorporation' in letters:
+        elements.append(Spacer(1, 12))
+        elements.append(Paragraph(f"{letters['incorporation']}. Incorporation / Secretarial Service and Mandatory Registrations post Incorporation", heading2_style))
+        elements.append(Spacer(1, 2))
+
+        inc_data = [['Services', 'One-time Fee']]
+
+        if data.get('includeIncorporation') == 'on':
+            inc_fee = format_currency(data.get('incorporationFee', '0'))
+            if not inc_fee:
+                inc_fee = '1500'
+            inc_data.append([
+                Paragraph("""<font color="#C00000" face="Roboto-Bold"><b>Incorporation</b></font><br/>
 • PAN of the company included<br/>
 • TAN of the company included<br/>
 • Employees' Provident Fund and Miscellaneous Provision Act, Employees' State Insurance Corporation Act included""", normal_style),
-            inc_fee
-        ])
-    
-    if data.get('includeGST') == 'on':
-        gst_fee = format_currency(data.get('gstRegFee', '0'))
-        if not gst_fee:
-            gst_fee = '0'
-        inc_data.append([
-            Paragraph("""<font color="#C00000" face="Roboto-Bold"><b>Goods & Service Tax (GST)</b></font><br/><br/>
-Registration of single location with GST authorities.<br/>
-                      <br/>
-<i>Registration of every additional location with the GST authorities shall cost USD 100</i>""",normal_style),
-            gst_fee
-        ])
-    
-    if data.get('includeFCGPR') == 'on':
-        fcgpr_fee = format_currency(data.get('fcgprFee', '0'))
-        if not fcgpr_fee:
-            fcgpr_fee = '0'
-        inc_data.append([
-            Paragraph("""<font color="#C00000" face="Roboto-Bold"><b>FCGPR Filing with Reserve Bank of India</b></font><br/>
+                inc_fee
+            ])
+
+        if data.get('includeGST') == 'on':
+            gst_fee = format_currency(data.get('gstRegFee', '0'))
+            if not gst_fee:
+                gst_fee = '350'
+            inc_data.append([
+                Paragraph("""<font color="#C00000" face="Roboto-Bold"><b>Goods & Service Tax (GST)</b></font><br/><br/>
+Registration of single location with GST authorities.<br/><br/>
+<i>Registration of every additional location with the GST authorities shall cost USD 100</i>""", normal_style),
+                gst_fee
+            ])
+
+        if data.get('includeFCGPR') == 'on':
+            fcgpr_fee = format_currency(data.get('fcgprFee', '0'))
+            if not fcgpr_fee:
+                fcgpr_fee = '1250 per applicant '
+            inc_data.append([
+                Paragraph("""<font color="#C00000" face="Roboto-Bold"><b>FCGPR Filing with Reserve Bank of India</b></font><br/>
 Filing of Forms and declaration with RBI as required under FEMA""", normal_style),
-            fcgpr_fee
-        ])
-    
-    if data.get('includeROC') == 'on':
-        roc_fee = format_currency(data.get('rocComplianceFee', '0'))
-        if not roc_fee:
-            roc_fee = '0'
-        inc_data.append([
-            Paragraph("""<font color="#C00000" face="Roboto-Bold"><b>Statutory Compliances with Registrar of Companies under Companies Act:</b></font><br/>
-                      <br/>
-• Drafting of first board meeting documents<br/>
-                      <br/>
+                fcgpr_fee
+            ])
+
+        if data.get('includeROC') == 'on':
+            roc_fee = format_currency(data.get('rocComplianceFee', '0'))
+            if not roc_fee:
+                roc_fee = '500'
+            inc_data.append([
+                Paragraph("""<font color="#C00000" face="Roboto-Bold"><b>Statutory Compliances with Registrar of Companies under Companies Act:</b></font><br/><br/>
+• Drafting of first board meeting documents<br/><br/>
 • Guidance on capital infusion in bank account<br/><br/>
 • File form with Ministry for commencement of business (COC)<br/><br/>
 • Preparation of statutory shareholders register""", normal_style),
-            roc_fee
-        ])
-    
-    if len(inc_data) > 1:
-        inc_table = Table(inc_data, colWidths=[5.7*inch, 1.5*inch])
-        inc_table.setStyle(TableStyle([
-            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor("#FFFFFF")),
-            ('TEXTCOLOR', (0, 0), (-1, 0), colors.black),
-            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-            ('FONTSIZE', (0, 0), (1, 0), 10),  # ✅ Header - 8 se 10
-('FONTSIZE', (0, 1), (-1, -1), 8),
-            ('ALIGN', (1, 0), (1, -1), 'CENTER'),
-            ('GRID', (0, 1), (-1, -1), 0.5, colors.black),
-            ('VALIGN', (0, 0), (-1, -1), 'TOP'),
-            ('TOPPADDING', (0, 0), (-1, -1), 8),
-            ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
-           ('LEFTPADDING', (0, 1), (0, -1), 2),
-('RIGHTPADDING', (0, 0), (-1, -1), 8),
-('LINEBELOW', (0, 0), (-1, 0), 0.75, colors.black),  # ✅ sirf bottom border
-('LINEBEFORE', (0, 0), (-1, 0), 0, colors.white),    # ✅ left border NONE
-('LINEAFTER', (0, 0), (-1, 0), 0, colors.white),     # ✅ right border NONE
-('LINEABOVE', (0, 0), (-1, 0), 0, colors.white), 
-        ]))
-        elements.append(inc_table)
-        elements.append(Spacer(1, 13))
-    
-    notes_b = """<b><u><font color="#002060">Note:</font></u></b><br/>
-        <br/><br/>
+                roc_fee
+            ])
+
+        if len(inc_data) > 1:
+            inc_table = Table(inc_data, colWidths=[5.7*inch, 1.5*inch])
+            inc_table.setStyle(TableStyle([
+                ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor("#FFFFFF")),
+                ('TEXTCOLOR', (0, 0), (-1, 0), colors.black),
+                ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+                ('FONTSIZE', (0, 0), (1, 0), 10),
+                ('FONTSIZE', (0, 1), (-1, -1), 8),
+                ('ALIGN', (1, 0), (1, -1), 'CENTER'),
+                ('GRID', (0, 1), (-1, -1), 0.5, colors.black),
+                ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+                ('TOPPADDING', (0, 0), (-1, -1), 8),
+                ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
+                ('LEFTPADDING', (0, 1), (0, -1), 2),
+                ('RIGHTPADDING', (0, 0), (-1, -1), 8),
+                ('LINEBELOW', (0, 0), (-1, 0), 0.75, colors.black),
+                ('LINEBEFORE', (0, 0), (-1, 0), 0, colors.white),
+                ('LINEAFTER', (0, 0), (-1, 0), 0, colors.white),
+                ('LINEABOVE', (0, 0), (-1, 0), 0, colors.white),
+            ]))
+            elements.append(inc_table)
+            elements.append(Spacer(1, 13))
+
+        notes_b = """<b><u><font color="#002060">Note:</font></u></b><br/><br/>
 • All fees quoted above exclude 18% GST.<br/>
 • Professional fees exclude all out-of-pocket expenses like filing fees, courier expenses, apostilling & notary cost to any authorities/departments, statutory fees payable to Registrar of companies (ROC) towards incorporation etc. other than those mentioned above.<br/>
 • Advance of 100% of the above selected option.<br/>
-• On finalization of shareholding structure, we shall be able to guide on compliances needed for issuance of share certificates and shall share a separate fee quote for the same. <br/>
+• On finalization of shareholding structure, we shall be able to guide on compliances needed for issuance of share certificates and shall share a separate fee quote for the same.<br/>
 """
-
-    text_b="""<br/><b><i>* Any other services not specifically quoted above and not specifically agreed separately shall be chargeable 
-as under</i></b><br/><br/>
-<b><i> For Partner: USD 300 per Hour</i> </b><br/><br/>
-<b><i>For Associates: USD 200 per Hour</i></b>"""
-    elements.append(Paragraph(notes_b, normal_style))
-    elements.append(Paragraph(text_b, small_style))
-    elements.append(Spacer(1, 8))
-    # ==================== PAGE 9 - OPTIONAL REGISTRATIONS & NOMINEE ====================
-    elements.append(Paragraph("Optional registrations required post incorporation (One-time)", heading2_style))
-    elements.append(Spacer(1, 3))
-    
-    opt_data = [['Services', 'Fees (In USD)']]
-    
-    optional_services = [
-        ('includeIEC', 'iecFee', '<font color="#C00000"face="Roboto-Bold">Import Export Code (IEC Code)</font>'),
-        ('includePT', 'ptFee', '<font color="#C00000"face="Roboto-Bold">Profession Tax (PT)</font><br/><br/>•Payments and return filing for company, its employees until the company\'s certificate of commencement is obtained'),
-        ('includeBEN', 'benFee', '<font color="#C00000" face="Roboto-Bold">Submission of for Significant Beneficial Ownership via form BEN-2</font>'),
-        ('includeMGT', 'mgtFee', '<font color="#C00000" face="Roboto-Bold">Filing of requisite forms with Registrar of Companies (ROC) with respect to beneficial and nominee shareholding (via Form MGT 4, MGT 5, MGT 6)</font>'),
-        ('includePAN', 'panCardFee', '<font color="#C00000" face="Roboto-Bold">Physical PAN Card of the company</font>'),
-        ('includeTrademark', 'trademarkFee', '<font color="#C00000" face="Roboto-Bold">Trademark Registration (exclusive of disbursement fees)</font>'),
-        ('includeForeignPAN', 'foreignPanFee', '<font color="#C00000" face="Roboto-Bold">PAN for foreign director</font>'),
-        ('includeBankAssist', 'bankAssistFee', '<font color="#C00000" face="Roboto-Bold">Assistance in opening of bank account</font>')
-    ]
-    # Create a special style with no left indent for optional services
-    opt_style = ParagraphStyle(
-                    'OptStyle',
-parent=normal_style ,
-leftIndent=0,  # ✅ Remove left indent
-rightIndent=0
-)
-    for checkbox, fee_key, label in optional_services:
-        if data.get(checkbox) == 'on':
-            fee = format_currency(data.get(fee_key, '0'))
-            if not fee:
-                fee = '0'
-            opt_data.append([Paragraph(label, opt_style), fee])
-    
-    if len(opt_data) > 1:
-        opt_table = Table(opt_data, colWidths=[5.7*inch, 1.5*inch])
-        opt_table.setStyle(TableStyle([
-            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor("#FFFFFF")),
-            ('TEXTCOLOR', (0, 0), (-1, 0), colors.black),
-            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-            ('FONTSIZE', (0, 0), (1, 0), 10),  # ✅ Header
-            ('FONTSIZE', (0, 1), (-1, -1), 8),
-            ('ALIGN', (1, 0), (1, -1), 'CENTER'),
-            ('GRID', (0, 1), (-1, -1), 0.5, colors.black),
-            ('VALIGN', (0, 0), (-1, -1), 'TOP'),
-            ('TOPPADDING', (0, 0), (-1, -1), 8),
-            ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
-           ('LEFTPADDING', (0, 1), (0, -1), 2),
-            ('LINEBELOW', (0, 0), (-1, 0), 0.75, colors.black),  # ✅ sirf bottom border
-('LINEBEFORE', (0, 0), (-1, 0), 0, colors.white),    # ✅ left border NONE
-('LINEAFTER', (0, 0), (-1, 0), 0, colors.white),     # ✅ right border NONE
-('LINEABOVE', (0, 0), (-1, 0), 0, colors.white), 
-('RIGHTPADDING', (0, 0), (-1, -1), 8),]))
-        elements.append(opt_table)
-        elements.append(Spacer(1, 10))
-    
-    elements.append(Paragraph("""<i><font color="#C00000">*For every new director's professional tax no., there shall be additional cost of $100 per director</font><br/>
-<font color="#C00000">*Digital signature certificate (DSC) token can be obtained at a cost of USD 200 per applicant.</font></i>""", small_style))
-    elements.append(Spacer(1, 20))
-
-    notes_b = """<b><u><font color="#002060">Note:</font></u></b><br/><br/>
-• All fees quoted above exclude 18% GST.<br/>
-• Professional fees exclude all out-of-pocket expenses like filing fees, courier expenses, apostilling & notary cost to any authorities/departments, statutory fees payable to Registrar of companies (ROC) towards incorporation etc. other than those mentioned above.<br/>
-• Advance of 100% of the above selected option.<br/>
-"""
-    text_c=""" <br/> *Any other services not specifically quoted above and not specifically agreed separately shall be chargeable 
-as under<br/><br/>
- <b><i>For Partner: USD 300 per Hour</i></b> <br/><br/>
- <b>For Associates: USD 200 per Hour</b>"""
-    elements.append(Paragraph(notes_b, normal_style))
-    elements.append(Paragraph(text_c, small_style))
-    elements.append(Spacer(1, 4))
-    
-    # NOMINEE DIRECTOR SERVICE
-    elements.append(Paragraph("Nominee Director and Registered Office Address Service", heading2_style))
-    elements.append(Spacer(1, 4))
-    
-    nominee_data = [['Services', 'Monthly Fee(in USD)']]
-    
-    if data.get('includeRegOffice') == 'on':
-        reg_office_fee = format_currency(data.get('registeredOfficeFee', '0'))
-        if not reg_office_fee:
-            reg_office_fee = '0'
-        nominee_data.append([
-            Paragraph("""<font color="#C00000" face="Roboto-Bold"><b>Registered Office Service</b></font><br/><br/>
-A refundable Security deposit @USD 2500 applies**. Refundable upon cessation of Registered office service.""", normal_style),
-            reg_office_fee
-        ])
-    
-    if data.get('includeNomineeDir') == 'on':
-        nom_dir_fee = format_currency(data.get('nomineeDirectorFee', '0'))
-        if not nom_dir_fee:
-            nom_dir_fee = '0'
-        nominee_data.append([
-            Paragraph("""<font color="#C00000" face="Roboto-Bold"><b>Nominee Director Service</b></font><br/>
-A refundable Security deposit per nominee @USD 5000 applies*. Refundable upon cessation of Nominee Director Service<br/><br/>
-Director's fee for attending a physical or recorded or live board meeting @USD300 per director per board meeting<br/><br/>
-Every nominee director needs to be protected under a director's indemnity policy. Premium of indemnity bond to be charged on actual basis. InCorp shall enter into a 
-separate nominee directors' agreement at the time of engagement. <br/><br/>
-To ensure the removal of a nominee director from registrations ***with various authorities 
-where required, InCorp must be notified at least three months in advance. Additionally, 
-professional fees for this service will continue to be charged until the removal is reflected 
-by all relevant authorities as well as Bank & new director is appointed in his place.
-""", normal_style),
-            nom_dir_fee
-        ])
-    
-    if len(nominee_data) > 1:
-        nominee_table = Table(nominee_data, colWidths=[5.7*inch, 1.5*inch])
-        nominee_table.setStyle(TableStyle([
-# Header row
-('BACKGROUND', (0, 0), (-1, 0), colors.HexColor("#FFFCFC")),
-('TEXTCOLOR', (0, 0), (-1, 0), colors.black),
-('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-('FONTSIZE', (0, 0), (1, 0), 10),  # ✅ Header
-('FONTSIZE', (0, 1), (-1, -1), 8), 
-
-# Body alignment
-('ALIGN', (1, 0), (1, -1), 'CENTER'),  # Fee column LEFT
-('VALIGN', (0, 0), (-1, -1), 'TOP'),
-('LINEBELOW', (0, 0), (-1, 0), 0.75, colors.black),  # ✅ sirf bottom border
-('LINEBEFORE', (0, 0), (-1, 0), 0, colors.white),    # ✅ left border NONE
-('LINEAFTER', (0, 0), (-1, 0), 0, colors.white),     # ✅ right border NONE
-('LINEABOVE', (0, 0), (-1, 0), 0, colors.white), 
-
-# Borders and padding
-('GRID', (0, 1), (-1, -1), 0.5, colors.black),
-('TOPPADDING', (0, 0), (-1, -1), 5),
-('BOTTOMPADDING', (0, 0), (-1, -1), 5),
-('LEFTPADDING', (0, 1), (0, -1), 2),
-('RIGHTPADDING', (0, 0), (-1, -1), 8),
-
-('LINEBELOW', (0, 0), (-1, 0), 0.75, colors.black),  # ✅ sirf bottom border
-('LINEBEFORE', (0, 0), (-1, 0), 0, colors.white),    # ✅ left border NONE
-('LINEAFTER', (0, 0), (-1, 0), 0, colors.white),     # ✅ right border NONE
-('LINEABOVE', (0, 0), (-1, 0), 0, colors.white), 
-
-        ]))
-        elements.append(nominee_table)
-        elements.append(Paragraph("""<b><i>*Failure to engage InCorp's services for regular compliances of the company post the setup such as tax, secretarial, FEMA etc. shall 
-result in forfeiture of the security deposit received against nominee director and registered office services.<br/><br/>
-**Any fees for rectification (or) completion of pending past compliances shall attract additional fees and we shall seek your approval 
-prior to commencement of that work.<br/><br/>
-*** The Nominee Director shall not sign any return, forms or documents relating to any statutory filing nor will be appointed as the 
-authorized signatory to any of the bank accounts of the entity or under GST, Income Tax any other government portal. The Company 
-may consider appointing one of its key managerial personnel as the authorised signatory across all government portals</i></b>""", small_style))
-    
-
-    # ==================== PAGE 10 - NOMINEE NOTES ====================
-    elements.append(Spacer(1, 10))
-    nominee_notes = """<b><u><font color="#002060">Note:</font></u></b><br/>
-        <br/>
-• All fees quoted above exclude 18% GST.<br/>
-• The Nominee Director will not be involved in day-to-day affairs / management of the Company. He/She shall not sign any return, forms or documents relating to any statutory filing.<br/>
-• The service of Registered office & Nominee director is offered on discretionary basis only for temporary basis of 6 
-months. Such services are provided only in case of successful completion of Internal Customer Due diligence at 
-InCorp and formal engagement of Incorp for all the compliances (tax, secretarial, FEMA etc.) post incorporation of 
-the company for the regular maintenance of the company. 
-<br/>
-•Failure to engage InCorp's services for regular compliances of the company post the setup such as tax, secretarial, 
-FEMA etc. shall result in forfeiture of the security deposit received against registered office and nominee director 
-services.<br/>
-•Professional fees exclude all out-of-pocket expenses like filing fees, courier expenses, apostilling & notary cost to 
-any authorities/departments, statutory fees payable to Registrar of companies (ROC) towards incorporation etc. 
-other than those mentioned above.<br/>
-• Advance of 100% of the above selected option.<br/>
-"""
-    text_d="""<br/>* Any other services not specifically quoted above shall be chargeable as under: <br/><br/>
+        text_b = """<br/><b><i>* Any other services not specifically quoted above and not specifically agreed separately shall be chargeable as under</i></b><br/><br/>
 <b><i>For Partner: USD 300 per Hour</i></b><br/><br/>
 <b><i>For Associates: USD 200 per Hour</i></b>"""
-    elements.append(Paragraph(nominee_notes, normal_style))
-    elements.append(Paragraph(text_d, small_style))
-    
-    
-    # ==================== PAGE 11-12 - C. ALL SECTIONS IN ONE TABLE WITH TOTALS ====================
-    elements.append(Spacer(1, 12))
-    elements.append(Paragraph("C. Accounting / Tax / Payroll / Annual Compliance Services", heading2_style))
-    elements.append(Spacer(1, 5))
-    
-    acc_intro = """The below quotation is our base fees for first year of business with limited volume of transactions and may change depending upon volume of work and nature of transactions:"""
-    elements.append(Paragraph(acc_intro, small_style))
-    elements.append(Spacer(1, 12))
-    
-    # ONE BIG COMBINED TABLE
-    all_sections_data = [['Services', 'Frequency', 'Notes', 'Fees (in USD)']]
-    
-    # Track for totals calculation
-    total_annual_cost = 0
-    total_onetime_cost = 0
-    
-    def add_to_totals(frequency, fee_str):
-        """Helper function to add fees to totals based on frequency"""
-        nonlocal total_annual_cost, total_onetime_cost
-        try:
-            fee = float(fee_str.replace(',', '')) if fee_str else 0
-            freq_lower = frequency.lower()
-            
-            if 'one time' in freq_lower or 'one-time' in freq_lower:
-                total_onetime_cost += fee
-            elif 'monthly' in freq_lower:
-                total_annual_cost += fee * 12
-            elif 'quarterly' in freq_lower:
-                total_annual_cost += fee * 4
-            elif 'annual' in freq_lower:
-                total_annual_cost += fee
-        except:
+        elements.append(Paragraph(notes_b, normal_style))
+        elements.append(Paragraph("* Any other services not specifically quoted above and not specifically agreed separately shall be chargeable as under:", italic_style))
+        elements.append(Spacer(1, 4))
+        elements.append(Paragraph("<b>For Partner: USD 300 per Hour</b>", italic_style))
+        elements.append(Spacer(1, 2))
+        elements.append(Paragraph("<b>For Associates: USD 200 per Hour</b>", italic_style))
+        elements.append(Spacer(1, 8))
+
+        # ==================== PAGE 9 - OPTIONAL REGISTRATIONS ====================
+        elements.append(Paragraph("Optional registrations required post incorporation (One-time)", heading2_style))
+        elements.append(Spacer(1, 3))
+
+        opt_data = [['Services', 'Fees (In USD)']]
+        optional_services = [
+            ('includeIEC', 'iecFee', '200','<font color="#C00000"face="Roboto-Bold">Import Export Code (IEC Code)</font>'),
+            ('includePT', 'ptFee','200', '<font color="#C00000"face="Roboto-Bold">Profession Tax (PT)</font><br/><br/>•Payments and return filing for company, its employees until the company\'s certificate of commencement is obtained'),
+            ('includeBEN', 'benFee', '250','<font color="#C00000" face="Roboto-Bold">Submission of for Significant Beneficial Ownership via form BEN-2</font>'),
+            ('includeMGT', 'mgtFee','250', '<font color="#C00000" face="Roboto-Bold">Filing of requisite forms with Registrar of Companies (ROC) with respect to beneficial and nominee shareholding (via Form MGT 4, MGT 5, MGT 6)</font>'),
+            ('includePAN', 'panCardFee','300', '<font color="#C00000" face="Roboto-Bold">Physical PAN Card of the company</font>'),
+            ('includeTrademark', 'trademarkFee','350', '<font color="#C00000" face="Roboto-Bold">Trademark Registration (exclusive of disbursement fees)</font>'),
+            ('includeForeignPAN', 'foreignPanFee', '200 per director','<font color="#C00000" face="Roboto-Bold">PAN for foreign director</font>'),
+            ('includeBankAssist', 'bankAssistFee', '250','<font color="#C00000" face="Roboto-Bold">Assistance in opening of bank account</font>')
+        ]
+        opt_style = ParagraphStyle('OptStyle', parent=normal_style, leftIndent=0, rightIndent=0)
+        for checkbox, fee_key,default_fee, label in optional_services:
+            if data.get(checkbox) == 'on':
+                fee = format_currency(data.get(fee_key, '0'))
+                if not fee:
+                    fee = default_fee
+                opt_data.append([Paragraph(label, opt_style), fee])
+
+        if len(opt_data) > 1:
+            opt_table = Table(opt_data, colWidths=[5.7*inch, 1.5*inch])
+            opt_table.setStyle(TableStyle([
+                ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor("#FFFFFF")),
+                ('TEXTCOLOR', (0, 0), (-1, 0), colors.black),
+                ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+                ('FONTSIZE', (0, 0), (1, 0), 10),
+                ('FONTSIZE', (0, 1), (-1, -1), 8),
+                ('ALIGN', (1, 0), (1, -1), 'CENTER'),
+                ('GRID', (0, 1), (-1, -1), 0.5, colors.black),
+                ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+                ('TOPPADDING', (0, 0), (-1, -1), 8),
+                ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
+                ('LEFTPADDING', (0, 1), (0, -1), 2),
+                ('RIGHTPADDING', (0, 0), (-1, -1), 8),
+                ('LINEBELOW', (0, 0), (-1, 0), 0.75, colors.black),
+                ('LINEBEFORE', (0, 0), (-1, 0), 0, colors.white),
+                ('LINEAFTER', (0, 0), (-1, 0), 0, colors.white),
+                ('LINEABOVE', (0, 0), (-1, 0), 0, colors.white),
+            ]))
+            elements.append(opt_table)
+            elements.append(Spacer(1, 10))
+
+        elements.append(Paragraph("*For every new director's professional tax no., there shall be additional cost of $100 per director", italic_style))
+        elements.append(Paragraph("*Digital signature certificate (DSC) token can be obtained at a cost of USD 200 per applicant.", italic_style))
+        elements.append(Spacer(1, 20))
+
+        notes_opt = """<b><u><font color="#002060">Note:</font></u></b><br/><br/>
+• All fees quoted above exclude 18% GST.<br/>
+• Professional fees exclude all out-of-pocket expenses like filing fees, courier expenses, apostilling &amp; notary cost to any authorities/departments, statutory fees payable to Registrar of companies (ROC) towards incorporation etc. other than those mentioned above.<br/>
+• Advance of 100% of the above selected option.<br/>
+"""
+        elements.append(Paragraph(notes_opt, normal_style))
+        elements.append(Paragraph("*Any other services not specifically quoted above and not specifically agreed separately shall be chargeable as under:", italic_style))
+        elements.append(Spacer(1, 4))
+        elements.append(Paragraph("<b>For Partner: USD 300 per Hour</b>", italic_style))
+        elements.append(Spacer(1, 2))
+        elements.append(Paragraph("<b>For Associates: USD 200 per Hour</b>", italic_style))
+        elements.append(Spacer(1, 4))
+
+        # NOMINEE DIRECTOR SERVICE
+        elements.append(Paragraph("Nominee Director and Registered Office Address Service", heading2_style))
+        elements.append(Spacer(1, 4))
+
+        nominee_data = [['Services', 'Monthly Fee(in USD)']]
+
+        if data.get('includeRegOffice') == 'on':
+            reg_office_fee = format_currency(data.get('registeredOfficeFee', '0'))
+            if not reg_office_fee:
+                reg_office_fee = '300'
+            nominee_data.append([
+                Paragraph("""<font color="#C00000" face="Roboto-Bold"><b>Registered Office Service</b></font><br/><br/>
+A refundable Security deposit @USD 2500 applies**. Refundable upon cessation of Registered office service.""", normal_style),
+                reg_office_fee
+            ])
+
+        if data.get('includeNomineeDir') == 'on':
+            nom_dir_fee = format_currency(data.get('nomineeDirectorFee', '0'))
+            if not nom_dir_fee:
+                nom_dir_fee = '350'
+            nominee_data.append([
+                Paragraph("""<font color="#C00000" face="Roboto-Bold"><b>Nominee Director Service</b></font><br/>
+A refundable Security deposit per nominee @USD 5000 applies*. Refundable upon cessation of Nominee Director Service<br/><br/>
+Director's fee for attending a physical or recorded or live board meeting @USD300 per director per board meeting<br/><br/>
+Every nominee director needs to be protected under a director's indemnity policy. Premium of indemnity bond to be charged on actual basis. InCorp shall enter into a separate nominee directors' agreement at the time of engagement.<br/><br/>
+To ensure the removal of a nominee director from registrations ***with various authorities where required, InCorp must be notified at least three months in advance. Additionally, professional fees for this service will continue to be charged until the removal is reflected by all relevant authorities as well as Bank & new director is appointed in his place.
+""", normal_style),
+                nom_dir_fee
+            ])
+
+        if len(nominee_data) > 1:
+            nominee_table = Table(nominee_data, colWidths=[5.7*inch, 1.5*inch])
+            nominee_table.setStyle(TableStyle([
+                ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor("#FFFCFC")),
+                ('TEXTCOLOR', (0, 0), (-1, 0), colors.black),
+                ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+                ('FONTSIZE', (0, 0), (1, 0), 10),
+                ('FONTSIZE', (0, 1), (-1, -1), 8),
+                ('ALIGN', (1, 0), (1, -1), 'CENTER'),
+                ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+                ('GRID', (0, 1), (-1, -1), 0.5, colors.black),
+                ('TOPPADDING', (0, 0), (-1, -1), 5),
+                ('BOTTOMPADDING', (0, 0), (-1, -1), 5),
+                ('LEFTPADDING', (0, 1), (0, -1), 2),
+                ('RIGHTPADDING', (0, 0), (-1, -1), 8),
+                ('LINEBELOW', (0, 0), (-1, 0), 0.75, colors.black),
+                ('LINEBEFORE', (0, 0), (-1, 0), 0, colors.white),
+                ('LINEAFTER', (0, 0), (-1, 0), 0, colors.white),
+                ('LINEABOVE', (0, 0), (-1, 0), 0, colors.white),
+            ]))
+            elements.append(nominee_table)
+            elements.append(Paragraph("*Failure to engage InCorp's services for regular compliances of the company post the setup such as tax, secretarial, FEMA etc. shall result in forfeiture of the security deposit received against nominee director and registered office services.", italic_style))
+            elements.append(Spacer(1, 4))
+            elements.append(Paragraph("**Any fees for rectification (or) completion of pending past compliances shall attract additional fees and we shall seek your approval prior to commencement of that work.", italic_style))
+            elements.append(Spacer(1, 4))
+            elements.append(Paragraph("*** The Nominee Director shall not sign any return, forms or documents relating to any statutory filing nor will be appointed as the authorized signatory to any of the bank accounts of the entity or under GST, Income Tax any other government portal. The Company may consider appointing one of its key managerial personnel as the authorised signatory across all government portals", italic_style))
+
+        # ==================== PAGE 10 - NOMINEE NOTES ====================
+            elements.append(Spacer(1, 10))
+            nominee_notes = """<b><u><font color="#002060">Note:</font></u></b><br/><br/>
+• All fees quoted above exclude 18% GST.<br/>
+• The Nominee Director will not be involved in day-to-day affairs / management of the Company. He/She shall not sign any return, forms or documents relating to any statutory filing.<br/>
+• The service of Registered office & Nominee director is offered on discretionary basis only for temporary basis of 6 months. Such services are provided only in case of successful completion of Internal Customer Due diligence at InCorp and formal engagement of Incorp for all the compliances (tax, secretarial, FEMA etc.) post incorporation of the company for the regular maintenance of the company.<br/>
+• Failure to engage InCorp's services for regular compliances of the company post the setup such as tax, secretarial, FEMA etc. shall result in forfeiture of the security deposit received against registered office and nominee director services.<br/>
+• Professional fees exclude all out-of-pocket expenses like filing fees, courier expenses, apostilling & notary cost to any authorities/departments, statutory fees payable to Registrar of companies (ROC) towards incorporation etc. other than those mentioned above.<br/>
+• Advance of 100% of the above selected option.<br/>
+"""
+            elements.append(Paragraph(nominee_notes, normal_style))
+            elements.append(Paragraph("* Any other services not specifically quoted above shall be chargeable as under:", italic_style))
+            elements.append(Spacer(1, 4))
+            elements.append(Paragraph("<b>For Partner: USD 300 per Hour</b>", italic_style))
+            elements.append(Spacer(1, 2))
+            elements.append(Paragraph("<b>For Associates: USD 200 per Hour</b>", italic_style))
+
+    # ==================== PAGE 11-12 - C. ACCOUNTING / TAX / PAYROLL ====================
+    if 'accounting' in letters:
+        elements.append(Spacer(1, 12))
+        elements.append(Paragraph(f"{letters['accounting']}. Accounting / Tax / Payroll / Annual Compliance Services", heading2_style))
+        elements.append(Spacer(1, 5))
+        acc_intro = """The below quotation is our base fees for first year of business with limited volume of transactions and may change depending upon volume of work and nature of transactions:"""
+        elements.append(Paragraph(acc_intro, small_style))
+        elements.append(Spacer(1, 12))
+
+        # ONE BIG COMBINED TABLE
+        all_sections_data = [['Services', 'Frequency', 'Notes', 'Fees (in USD)']]
+
+        # Track for totals calculation
+        total_annual_cost = 0
+        total_onetime_cost = 0
+
+        def add_to_totals(frequency, fee_str):
+            """Helper function to add fees to totals based on frequency"""
+            nonlocal total_annual_cost, total_onetime_cost
+            try:
+                fee = float(fee_str.replace(',', '')) if fee_str else 0
+                freq_lower = frequency.lower()
+                if 'one time' in freq_lower or 'one-time' in freq_lower:
+                    total_onetime_cost += fee
+                elif 'monthly' in freq_lower:
+                    total_annual_cost += fee * 12
+                elif 'quarterly' in freq_lower:
+                    total_annual_cost += fee * 4
+                elif 'annual' in freq_lower:
+                    total_annual_cost += fee
+            except:
+                pass
+
+    # Initialize accounting variables always (needed even if accounting section not selected)
+    if 'accounting' not in letters:
+        all_sections_data = [['Services', 'Frequency', 'Notes', 'Fees (in USD)']]
+        total_annual_cost = 0
+        total_onetime_cost = 0
+        def add_to_totals(frequency, fee_str):
             pass
     
     section_header_style = ParagraphStyle(
-'SectionHeader',
-parent=small_style,
-fontSize=10,  # Smaller font
-leading=9,
-leftIndent=0,
-rightIndent=0,
-wordWrap='LTR')
+        'SectionHeader',
+        parent=normal_style,
+        fontSize=9,
+        leading=13,
+        fontName='Roboto-Bold',
+        textColor=colors.HexColor('#C00000'),
+        leftIndent=0,
+        rightIndent=0,
+        wordWrap='LTR'
+    )
     # DIRECT TAX
     direct_tax_entries = []
     if data.get('includeAdvanceTax') == 'on':
         advance_tax_fee = format_currency(data.get('advanceTaxFee', '0'))
         if not advance_tax_fee:
-            advance_tax_fee = '0'
+            advance_tax_fee = '200 per month'
         freq = data.get('advanceTaxFrequency', 'Quarterly')
         add_to_totals(freq, advance_tax_fee)
         direct_tax_entries.append([
@@ -751,7 +840,7 @@ wordWrap='LTR')
     if data.get('includeTDS') == 'on':
         tds_fee = format_currency(data.get('tdsFee', '0'))
         if not tds_fee:
-            tds_fee = '0'
+            tds_fee = '200 per month'
         freq = data.get('tdsFrequency', 'Monthly/Quarterly')
         add_to_totals(freq, tds_fee)
         direct_tax_entries.append([
@@ -760,14 +849,14 @@ wordWrap='LTR')
             Paragraph("""2) TDS compliances:<br/>
 • Calculation and Payment of TDS<br/>
 • Filing of TDS Returns<br/><br/>
-(The above excludes cost of revisions of TDS returns)""", normal_style),
+(The above excludes cost of revisions of TDS returns. The fee quote for the same shall be shared if applicable)""", normal_style),
             tds_fee
         ])
     
     if data.get('includeIncomeTax') == 'on':
         income_tax_fee = format_currency(data.get('incomeTaxReturnFee', '0'))
         if not income_tax_fee:
-            income_tax_fee = '0'
+            income_tax_fee = '500 per annum '
         freq = data.get('incomeTaxFrequency', 'Annual')
         add_to_totals(freq, income_tax_fee)
         direct_tax_entries.append([
@@ -795,7 +884,7 @@ Computation and filing of Annual Income tax Return<br/><br/>
     if data.get('includeGSTComp') == 'on':
         gst_fee = format_currency(data.get('gstComplianceFee', '0'))
         if not gst_fee:
-            gst_fee = '0'
+            gst_fee = '200 per month '
         freq = data.get('gstFrequency', 'Monthly and Annual')
         add_to_totals(freq, gst_fee)
         all_sections_data.append([
@@ -804,7 +893,7 @@ Computation and filing of Annual Income tax Return<br/><br/>
             Paragraph("""1) GST Compliances:<br/>
 • Calculations and payment of GST<br/>
 • Filing of monthly GST Returns<br/><br/>
-(The above excludes Annual returns of GST and revision of GST returns)""", normal_style),
+(The above excludes Annual returns of GST and revision of GST returns. The fee quote for the same shall be shared if applicable)""", normal_style),
             gst_fee
         ])
     
@@ -812,7 +901,7 @@ Computation and filing of Annual Income tax Return<br/><br/>
     if data.get('includeCompanyLaw') == 'on':
         company_law_fee = format_currency(data.get('companyLawFee', '0'))
         if not company_law_fee:
-            company_law_fee = '0'
+            company_law_fee = '200 per month'
         freq = data.get('companyLawFrequency', 'Monthly')
         add_to_totals(freq, company_law_fee)
         all_sections_data.append([
@@ -828,7 +917,7 @@ Assistance on conduction of virtual board meeting – USD 150 per board meeting"
     if data.get('includeRBIFiling') == 'on':
         rbi_filing_fee = format_currency(data.get('rbiFilingFee', '0'))
         if not rbi_filing_fee:
-            rbi_filing_fee = '0'
+            rbi_filing_fee = '450 per annum'
         freq = data.get('rbiFilingFrequency', 'Annual')
         add_to_totals(freq, rbi_filing_fee)
         foreign_exchange_entries.append([
@@ -841,7 +930,7 @@ Assistance on conduction of virtual board meeting – USD 150 per board meeting"
     if data.get('includeMasterFiling') == 'on':
         master_filing_fee = format_currency(data.get('masterFilingFee', '0'))
         if not master_filing_fee:
-            master_filing_fee = '0'
+            master_filing_fee = '350 per annum  '
         freq = data.get('masterFilingFrequency', 'Annual')
         add_to_totals(freq, master_filing_fee)
         foreign_exchange_entries.append([
@@ -866,7 +955,7 @@ Assistance on conduction of virtual board meeting – USD 150 per board meeting"
     if data.get('includeAcctSetup') == 'on':
         acct_setup_fee = format_currency(data.get('accountingSetupFee', '0'))
         if not acct_setup_fee:
-            acct_setup_fee = '0'
+            acct_setup_fee = '300'
         freq = data.get('acctSetupFrequency', 'One time')
         add_to_totals(freq, acct_setup_fee)
         accounting_entries.append([
@@ -891,8 +980,8 @@ Assistance on conduction of virtual board meeting – USD 150 per board meeting"
             ]
         
         nested_table_data = [
-            [Paragraph('<b>No. of transactions per month</b>', ParagraphStyle('nested', fontSize=9, alignment=TA_LEFT)), 
-             Paragraph('<b>Fees per month (in USD)</b>', ParagraphStyle('nested', fontSize=9, alignment=TA_RIGHT))]
+            [Paragraph('<b>No. of transactions per month</b>', ParagraphStyle('nested', fontSize=8, alignment=TA_LEFT)), 
+             Paragraph('<b>Fees per month (in USD)</b>', ParagraphStyle('nested', fontSize=8, alignment=TA_RIGHT))]
         ]
         
         for tier in accounting_tiers:
@@ -941,7 +1030,7 @@ Assistance on conduction of virtual board meeting – USD 150 per board meeting"
     if data.get('includeFinStmt') == 'on':
         fin_stmt_fee = format_currency(data.get('financialStatementsFee', '0'))
         if not fin_stmt_fee:
-            fin_stmt_fee = '0'
+            fin_stmt_fee = '500'
         freq = data.get('finStmtFrequency', 'Annual')
         add_to_totals(freq, fin_stmt_fee)
         accounting_entries.append([
@@ -967,7 +1056,7 @@ Assistance on conduction of virtual board meeting – USD 150 per board meeting"
     if data.get('includePayrollSetup') == 'on':
         payroll_setup_fee = format_currency(data.get('payrollSetupFee', '0'))
         if not payroll_setup_fee:
-            payroll_setup_fee = '0'
+            payroll_setup_fee = '500 one time'
         freq = data.get('payrollSetupFrequency', 'One time')
         add_to_totals(freq, payroll_setup_fee)
         payroll_entries.append([
@@ -980,7 +1069,7 @@ Assistance on conduction of virtual board meeting – USD 150 per board meeting"
     if data.get('includeShopPOSH') == 'on':
         shop_posh_fee = format_currency(data.get('shopPOSHFee', '0'))
         if not shop_posh_fee:
-            shop_posh_fee = '0'
+            shop_posh_fee = '500'
         freq = data.get('shopPOSHFrequency', 'One time')
         add_to_totals(freq, shop_posh_fee)
         payroll_entries.append([
@@ -1002,8 +1091,8 @@ Assistance on conduction of virtual board meeting – USD 150 per board meeting"
             ]
         
         nested_payroll_data = [
-            [Paragraph('<b>No of employees</b>', ParagraphStyle('nested', fontSize=9, alignment=TA_LEFT)), 
-             Paragraph('<b>Amount in USD per month</b>', ParagraphStyle('nested', fontSize=9, alignment=TA_RIGHT))]
+            [Paragraph('<b>No of employees</b>', ParagraphStyle('nested', fontSize=8, alignment=TA_LEFT)), 
+             Paragraph('<b>Amount in USD per month</b>', ParagraphStyle('nested', fontSize=8, alignment=TA_RIGHT))]
         ]
         
         for tier in payroll_tiers:
@@ -1030,7 +1119,7 @@ Assistance on conduction of virtual board meeting – USD 150 per board meeting"
         # Get the monthly fee from form (this is the fee that shows in last column)
         payroll_monthly_fee = format_currency(data.get('payrollProcessingFee', '125'))
         if not payroll_monthly_fee:
-            payroll_monthly_fee = '125'
+            payroll_monthly_fee = '125 per month'
         
         # Add monthly fee to totals calculation
         add_to_totals(freq, payroll_monthly_fee)
@@ -1045,7 +1134,7 @@ Assistance on conduction of virtual board meeting – USD 150 per board meeting"
     if data.get('includeLabourLaw') == 'on':
         labour_fee = format_currency(data.get('labourLawFee', '0'))
         if not labour_fee:
-            labour_fee = '0'
+            labour_fee = '200 per month'
         freq = data.get('labourLawFrequency', 'Monthly')
         add_to_totals(freq, labour_fee)
         payroll_entries.append([
@@ -1063,7 +1152,7 @@ Assistance on conduction of virtual board meeting – USD 150 per board meeting"
     if data.get('includeAnnualReturns') == 'on':
         annual_ret_fee = format_currency(data.get('annualReturnsFee', '0'))
         if not annual_ret_fee:
-            annual_ret_fee = '0'
+            annual_ret_fee = '200 per annum'
         freq = data.get('annualReturnsFrequency', 'Annual')
         add_to_totals(freq, annual_ret_fee)
         payroll_entries.append([
@@ -1103,7 +1192,7 @@ Assistance on conduction of virtual board meeting – USD 150 per board meeting"
     ])
     
     # CREATE ONE BIG TABLE WITH ALL SECTIONS
-    if len(all_sections_data) > 1:
+    if 'accounting' in letters and  len(all_sections_data) > 1:
         all_sections_table = Table(all_sections_data, colWidths=[1.3*inch, 1.3*inch, 3.2*inch, 1.4*inch])
         
         
@@ -1163,156 +1252,123 @@ Assistance on conduction of virtual board meeting – USD 150 per board meeting"
         all_sections_table.setStyle(TableStyle(table_style_all))
         elements.append(all_sections_table)
     
-    elements.append(Spacer(1, 10))
-    elements.append(Paragraph("<i>*The above quotation fee is for approx.20 transactions per month</i>", small_style))
-    
-    
-    
-    # ==================== PAGE 13 - NOTES & TRANSFER PRICING ====================
-    elements.append(Spacer(1, 4))
-    elements.append(Paragraph("""<i>InCorp's empanelled audit partners can offer the services of statutory audit (applicable to all), tax audit 
+    if 'accounting' in letters:
+        elements.append(Spacer(1, 10))
+        elements.append(Paragraph("*The above quotation fee is for approx.20 transactions per month", italic_style))
+
+        # ==================== PAGE 13 - NOTES ====================
+        elements.append(Spacer(1, 4))
+        elements.append(Paragraph("""^InCorp's empanelled audit partners can offer the services of statutory audit (applicable to all), tax audit 
 (applicable on if Turnover exceeds Rs. 100 Mn) and GST audit services (If Turnover exceeds Rs. 50 Mn) and 
 transfer pricing reporting & audit (applicable for companies having intercompany transactions). The quotes for 
-the same can be provided separately.</i><br/><br/>
-                              
-<i>^Audit partner firms (Jayesh Sanghrajka &Associates, Manish Modi &Associates) shall be able to assist on that 
-front. The estimated statutory fee quote for the first FY shall be between USD 2500 TO USD 3500.The auditor 
-shall be able to provide the final fee quote closer to year end March 2025 depending on the nature and 
-complexity of transactions.</i>""", normal_style))
-    elements.append(Spacer(1, 4))
-    notes_c = """<b><u><font color="#002060">Note:</font></u></b><br/><br/>
+the same can be provided separately.""", italic_style))
+        elements.append(Spacer(1, 6))
+        elements.append(Paragraph("""^Audit partner firms (Jayesh Sanghrajka &amp; Associates, Manish Modi &amp; Associates) shall be able to assist on that 
+front. The estimated statutory fee quote for the first FY shall be between USD 2500 TO USD 3500. The auditor 
+shall be able to provide the final fee quote closer to year end March 2026 depending on the nature and 
+complexity of transactions.""", italic_style))
+        elements.append(Spacer(1, 4))
+        notes_c = """<b><u><font color="#002060">Note:</font></u></b><br/><br/>
 • All fees quoted above exclude 18% GST.<br/>
 • Professional fees exclude all out-of-pocket expenses like filing fees, courier expenses, government/statutory fees etc.<br/>
 • Advance of 100% of the above selected option<br/>"""
+        elements.append(Paragraph(notes_c, normal_style))
+        elements.append(Spacer(1, 6))
+        elements.append(Paragraph("*** Any other services not specifically quoted above and not specifically agreed separately shall be chargeable as under:", italic_style))
+        elements.append(Spacer(1, 4))
+        elements.append(Paragraph("<b>For Partner: USD 300 per Hour</b>", italic_style))
+        elements.append(Spacer(1, 2))
+        elements.append(Paragraph("<b>For Associates: USD 200 per Hour</b>", italic_style))
+        elements.append(Spacer(1, 15))
 
-    text_e="""<br/>* Any other services not specifically quoted above shall be chargeable as under:<br/><br/>
- <b><i>For Partner: USD 300 per Hour</i></b><br/><br/>
- <b><i>For Associates: USD 200 per Hour</i></b>"""
-    elements.append(Paragraph(notes_c, normal_style))
-    elements.append(Paragraph(text_e, small_style))
-    elements.append(Spacer(1, 15))
-    
-    elements.append(Paragraph("D. Transfer Pricing compliances", heading2_style))
-    elements.append(Spacer(1, 4))
-    
-    tp_data = [['Services', 'Frequency', 'Notes', 'Fee (In USD)']]
+    # ==================== TRANSFER PRICING ====================
+    if 'transfer' in letters:
+        elements.append(Paragraph(f"{letters['transfer']}. Transfer Pricing compliances", heading2_style))
+        elements.append(Spacer(1, 4))
 
-    benchmark_fee=None
-    interco_fee=None
-    
-    if data.get('includeBenchmarking') == 'on':
-        benchmark_fee = format_currency(data.get('benchmarkingFee', '0')) or '0'
-       
-        tp_data.append([
-            Paragraph('<font color="#C00000" face="Roboto-Bold"><b>Benchmarking</b></font>', normal_style),
-            'One-time',
-            Paragraph("""1. Assistance in conducting Functional, Asset and Risk 
-Analysis of the proposed transaction to be entered 
-between related parties. <br/>
-2. Assisting in arriving at the arm's length price or margin 
-range that may be applicable to the proposed 
-transaction. Arm's Length is price that Indian 
-<company name> would have charged any other non related party/clients globally for similar services. This 
-is a legal requirement from Indian Income tax to 
-ensure Indian revenue department is not a loss of tax 
-revenue. and 
-<br/>
+        tp_data = [['Services', 'Frequency', 'Notes', 'Fee (In USD)']]
+        benchmark_fee = None
+        interco_fee = None
+
+        if data.get('includeBenchmarking') == 'on':
+            benchmark_fee = format_currency(data.get('benchmarkingFee', '0')) or '1500 per activity'
+            tp_data.append([
+                Paragraph('<font color="#C00000" face="Roboto-Bold"><b>Benchmarking</b></font>', normal_style),
+                'One-time',
+                Paragraph("""1. Assistance in conducting Functional, Asset and Risk Analysis of the proposed transaction to be entered between related parties.<br/>
+2. Assisting in arriving at the arm's length price or margin range that may be applicable to the proposed transaction. Arm's Length is price that Indian &lt;company name&gt; would have charged any other non related party/clients globally for similar services. This is a legal requirement from Indian Income tax to ensure Indian revenue department is not a loss of tax revenue. and<br/>
 Preparation of final benchmarking report*.""", normal_style),
-            benchmark_fee
-        ])
-    
-    if data.get('includeIntercompany') == 'on':
-        interco_fee = format_currency(data.get('intercompanyAgreementFee', '0')) or '0'
-        
-        tp_data.append([
-            Paragraph('<font color="#C00000" face="Roboto-Bold"><b>Inter-company agreement</b></font>', normal_style),
-            'One-time',
-            Paragraph("""Drafting and finalizing of Inter-company service agreement 
-covering detailed description of service to be provided, 
-components to be included while calculating cost of 
-services, Invoicing period, Receivable cycle, withholding, 
-ownership rights, effective date of agreement, indemnity 
-etc. in compliance with the Transfer Pricing regulations 
-defined under Income tax laws and other applicable Indian 
-laws""", normal_style),
-            interco_fee
-        ])
+                benchmark_fee
+            ])
 
-    tp_total = 0
+        if data.get('includeIntercompany') == 'on':
+            interco_fee = format_currency(data.get('intercompanyAgreementFee', '0')) or '1500'
+            tp_data.append([
+                Paragraph('<font color="#C00000" face="Roboto-Bold"><b>Inter-company agreement</b></font>', normal_style),
+                'One-time',
+                Paragraph("""Drafting and finalizing of Inter-company service agreement covering detailed description of service to be provided, components to be included while calculating cost of services, Invoicing period, Receivable cycle, withholding, ownership rights, effective date of agreement, indemnity etc. in compliance with the Transfer Pricing regulations defined under Income tax laws and other applicable Indian laws""", normal_style),
+                interco_fee
+            ])
 
-    if benchmark_fee is not None:  # Explicit check
-        try:
-            tp_total += int(benchmark_fee.replace(',', ''))
-        except:
-             pass
-    if interco_fee is not None:  # Explicit check
-        try:
-            tp_total += int(interco_fee.replace(',', ''))
-        except:
-            pass
-    
-    # Add total row if there are entries
-    if len(tp_data) > 1:
-        tp_data.append([
-            Paragraph('<b>Total one-time costs</b>', small_style),
-            '',
-            '',
-            f'{tp_total:,}'
-        ])
-    
-    if len(tp_data) > 1:
-        tp_table = Table(tp_data, colWidths=[1.4*inch, 1.1*inch, 3.3*inch, 1.4*inch])
-        table_style_tp = [
-           
-# Header row
-('BACKGROUND', (0, 0), (-1, 0), colors.HexColor("#FFFFFF")),
-('TEXTCOLOR', (0, 0), (-1, 0), colors.black),
-('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
- ('FONTSIZE', (0, 0), (3, 0), 10),  # ✅ Header - 8 se 10
-('FONTSIZE', (0, 1), (-1, -1), 8),
-# Body alignment
-('ALIGN', (2, 1), (2, -1), 'LEFT'),  # Fee column LEFT
-('VALIGN', (0, 0), (-1, -1), 'TOP'),
+        tp_total = 0
+        if benchmark_fee is not None:
+            try:
+                tp_total += int(benchmark_fee.replace(',', ''))
+            except:
+                pass
+        if interco_fee is not None:
+            try:
+                tp_total += int(interco_fee.replace(',', ''))
+            except:
+                pass
 
-# Borders and padding
-('GRID', (0, 1), (-1, -1), 0.5, colors.black),
-('TOPPADDING', (0, 0), (-1, -1), 8),
-('BOTTOMPADDING', (0, 0), (-1, -1), 8),
-('LEFTPADDING', (0, 0), (-1, -1), 8),
-('RIGHTPADDING', (0, 0), (-1, -1), 8),
-('LEFTPADDING', (0, 1), (0, -1), 2),    
-('BOX', (0, 0), (-1, -1), 0.5, colors.black),
-('LINEBELOW', (0, 0), (-1, 0), 0.75, colors.black),  # ✅ sirf bottom border
-('LINEBEFORE', (0, 0), (-1, 0), 0, colors.white),    # ✅ left border NONE
-('LINEAFTER', (0, 0), (-1, 0), 0, colors.white),     # ✅ right border NONE
-('LINEABOVE', (0, 0), (-1, 0), 0, colors.white), 
-]
-        if len(tp_data) > 2:  # Header + at least 1 service + total row
-            total_row_index = len(tp_data) - 1
-            table_style_tp.append(('SPAN', (0, total_row_index), (2, total_row_index)))
-            table_style_tp.append(('BACKGROUND', (0, total_row_index), (-1, total_row_index), colors.HexColor("#FFFFFF")))
-            table_style_tp.append(('ALIGN', (0, total_row_index), (2, total_row_index), 'CENTER'))
-        
-        tp_table.setStyle(TableStyle(table_style_tp))
-        elements.append(tp_table)
+        if len(tp_data) > 1:
+            tp_data.append([
+                Paragraph('<b>Total one-time costs</b>', small_style),
+                '', '', f'{tp_total:,}'
+            ])
+            tp_table = Table(tp_data, colWidths=[1.4*inch, 1.1*inch, 3.3*inch, 1.4*inch])
+            table_style_tp = [
+                ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor("#FFFFFF")),
+                ('TEXTCOLOR', (0, 0), (-1, 0), colors.black),
+                ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+                ('FONTSIZE', (0, 0), (3, 0), 10),
+                ('FONTSIZE', (0, 1), (-1, -1), 8),
+                ('ALIGN', (2, 1), (2, -1), 'LEFT'),
+                ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+                ('GRID', (0, 1), (-1, -1), 0.5, colors.black),
+                ('TOPPADDING', (0, 0), (-1, -1), 8),
+                ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
+                ('LEFTPADDING', (0, 1), (0, -1), 2),
+                ('RIGHTPADDING', (0, 0), (-1, -1), 8),
+                ('BOX', (0, 0), (-1, -1), 0.5, colors.black),
+                ('LINEBELOW', (0, 0), (-1, 0), 0.75, colors.black),
+                ('LINEBEFORE', (0, 0), (-1, 0), 0, colors.white),
+                ('LINEAFTER', (0, 0), (-1, 0), 0, colors.white),
+                ('LINEABOVE', (0, 0), (-1, 0), 0, colors.white),
+            ]
+            if len(tp_data) > 2:
+                total_row_index = len(tp_data) - 1
+                table_style_tp.append(('SPAN', (0, total_row_index), (2, total_row_index)))
+                table_style_tp.append(('BACKGROUND', (0, total_row_index), (-1, total_row_index), colors.HexColor("#FFFFFF")))
+                table_style_tp.append(('ALIGN', (0, total_row_index), (2, total_row_index), 'CENTER'))
+            tp_table.setStyle(TableStyle(table_style_tp))
+            elements.append(tp_table)
+            elements.append(Spacer(1, 10))
+            elements.append(Paragraph("*Please note that the above benchmarking report will not be transfer pricing documentation as required to be maintained under transfer pricing regulations. InCorp's empanelled audit partners can assist with the transfer pricing reporting & audit (applicable for companies having intercompany transactions). The quotes for the same can be provided separately.", italic_style))
+
         elements.append(Spacer(1, 10))
-        elements.append(Paragraph("""<i>*Please note that the above benchmarking report will not be transfer pricing documentation as required to be maintained 
-under transfer pricing regulations. InCorp's empanelled audit partners can assist with the transfer pricing reporting & audit 
-(applicable for companies having intercompany transactions). The quotes for the same can be provided separately</i>""", normal_style))
-    elements.append(Spacer(1, 10))
-    tp_notes = """<b><u><font color="#002060">Note:</font></u></b><br/><br/>
+        tp_notes = """<b><u><font color="#002060">Note:</font></u></b><br/><br/>
 • All fees quoted above exclude 18% GST.<br/>
 • Professional fees exclude all out-of-pocket expenses.<br/>
-• Advance of 100% of the above selected option.
-
-• * Any other services not specifically quoted above shall be chargeable as under:<br/><br/>
-<b> <i>For Partner: USD 300 per Hour</i></b><br/><br/>
-<b><i>For Associates: USD 200 per Hour</i></b>"""
-    elements.append(Paragraph(tp_notes, normal_style))
-    elements.append(Spacer(1, 6))
-
-    elements.append(Paragraph("""<i>^ InCorp's empanelled audit partners can assist with the transfer pricing reporting & audit (applicable for 
-companies having intercompany transactions). The quotes for the same can be provided separately.</i>""", normal_style))
+• Advance of 100% of the above selected option.<br/>"""
+        elements.append(Paragraph(tp_notes, normal_style))
+        elements.append(Spacer(1, 4))
+        elements.append(Paragraph("<b>For Partner: USD 300 per Hour</b>", italic_style))
+        elements.append(Spacer(1, 2))
+        elements.append(Paragraph("<b>For Associates: USD 200 per Hour</b>", italic_style))
+        elements.append(Spacer(1, 6))
+        elements.append(Paragraph("^ InCorp's empanelled audit partners can assist with the transfer pricing reporting &amp; audit (applicable for companies having intercompany transactions). The quotes for the same can be provided separately.", italic_style))
 
     return elements
 
@@ -1502,4 +1558,3 @@ if __name__ == '__main__':
     print("\n🚀 Starting server on http://localhost:5000")
     print("="*60)
     app.run(debug=True, host='0.0.0.0', port=5000)
-
