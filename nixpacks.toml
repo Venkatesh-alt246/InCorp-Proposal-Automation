@@ -1,0 +1,8 @@
+toml[phases.setup]
+nixPkgs = [
+  "libGL",
+  "libxcb",
+  "libX11",
+  "mesa",
+  "glib"
+]
