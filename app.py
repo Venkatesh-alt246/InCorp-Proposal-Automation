@@ -754,8 +754,8 @@ To ensure the removal of a nominee director from registrations ***with various a
             elements.append(Paragraph("*** The Nominee Director shall not sign any return, forms or documents relating to any statutory filing nor will be appointed as the authorized signatory to any of the bank accounts of the entity or under GST, Income Tax any other government portal. The Company may consider appointing one of its key managerial personnel as the authorised signatory across all government portals", italic_style))
 
         # ==================== PAGE 10 - NOMINEE NOTES ====================
-        elements.append(Spacer(1, 10))
-        nominee_notes = """<b><u><font color="#002060">Note:</font></u></b><br/><br/>
+            elements.append(Spacer(1, 10))
+            nominee_notes = """<b><u><font color="#002060">Note:</font></u></b><br/><br/>
 • All fees quoted above exclude 18% GST.<br/>
 • The Nominee Director will not be involved in day-to-day affairs / management of the Company. He/She shall not sign any return, forms or documents relating to any statutory filing.<br/>
 • The service of Registered office & Nominee director is offered on discretionary basis only for temporary basis of 6 months. Such services are provided only in case of successful completion of Internal Customer Due diligence at InCorp and formal engagement of Incorp for all the compliances (tax, secretarial, FEMA etc.) post incorporation of the company for the regular maintenance of the company.<br/>
@@ -763,12 +763,12 @@ To ensure the removal of a nominee director from registrations ***with various a
 • Professional fees exclude all out-of-pocket expenses like filing fees, courier expenses, apostilling & notary cost to any authorities/departments, statutory fees payable to Registrar of companies (ROC) towards incorporation etc. other than those mentioned above.<br/>
 • Advance of 100% of the above selected option.<br/>
 """
-        elements.append(Paragraph(nominee_notes, normal_style))
-        elements.append(Paragraph("* Any other services not specifically quoted above shall be chargeable as under:", italic_style))
-        elements.append(Spacer(1, 4))
-        elements.append(Paragraph("<b>For Partner: USD 300 per Hour</b>", italic_style))
-        elements.append(Spacer(1, 2))
-        elements.append(Paragraph("<b>For Associates: USD 200 per Hour</b>", italic_style))
+            elements.append(Paragraph(nominee_notes, normal_style))
+            elements.append(Paragraph("* Any other services not specifically quoted above shall be chargeable as under:", italic_style))
+            elements.append(Spacer(1, 4))
+            elements.append(Paragraph("<b>For Partner: USD 300 per Hour</b>", italic_style))
+            elements.append(Spacer(1, 2))
+            elements.append(Paragraph("<b>For Associates: USD 200 per Hour</b>", italic_style))
 
     # ==================== PAGE 11-12 - C. ACCOUNTING / TAX / PAYROLL ====================
     if 'accounting' in letters:
@@ -1325,10 +1325,15 @@ Preparation of final benchmarking report*.""", normal_style),
                 tp_total += int(interco_fee.replace(',', ''))
             except:
                 pass
+            total_label_style = ParagraphStyle(
+    'TotalLabelStyle',
+    parent=small_style,
+    alignment=TA_CENTER,
+)
 
         if len(tp_data) > 1:
             tp_data.append([
-                Paragraph('<b>Total one-time costs</b>', small_style),
+                Paragraph('<b>Total one-time costs</b>', total_label_style),
                 '', '', f'{tp_total:,}'
             ])
             tp_table = Table(tp_data, colWidths=[1.4*inch, 1.1*inch, 3.3*inch, 1.4*inch])
