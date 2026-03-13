@@ -436,24 +436,24 @@ Yours Sincerely and on behalf of In.Corp,<br/><br/><br/>"""
     
     # ==================== DYNAMIC SECTION LETTER ASSIGNMENT ====================
     section_keys = [
-        ('handover',      any([data.get('includeHandover') == 'on', data.get('includeDueDiligence') == 'on'])),
-        ('incorporation', any([data.get('includeIncorporation') == 'on', data.get('includeGST') == 'on',
-                               data.get('includeFCGPR') == 'on', data.get('includeROC') == 'on',
-                               data.get('includeIEC') == 'on', data.get('includePT') == 'on',
-                               data.get('includeBEN') == 'on', data.get('includeMGT') == 'on',
-                               data.get('includePAN') == 'on', data.get('includeTrademark') == 'on',
-                               data.get('includeForeignPAN') == 'on', data.get('includeBankAssist') == 'on',
-                               data.get('includeRegOffice') == 'on', data.get('includeNomineeDir') == 'on'])),
-        ('accounting',    any([data.get('includeAdvanceTax') == 'on', data.get('includeTDS') == 'on',
-                               data.get('includeIncomeTax') == 'on', data.get('includeGSTComp') == 'on',
-                               data.get('includeCompanyLaw') == 'on', data.get('includeRBIFiling') == 'on',
-                               data.get('includeMasterFiling') == 'on', data.get('includeAcctSetup') == 'on',
-                               data.get('includeAcctMaint') == 'on', data.get('includeFinStmt') == 'on',
-                               data.get('includePayrollSetup') == 'on', data.get('includeShopPOSH') == 'on',
-                               data.get('includePayrollProc') == 'on', data.get('includeLabourLaw') == 'on',
-                               data.get('includeAnnualReturns') == 'on'])),
-        ('transfer',      any([data.get('includeBenchmarking') == 'on', data.get('includeIntercompany') == 'on'])),
-    ]
+    ('handover',      data.get('sectionA') == 'on' and any([data.get('includeHandover') == 'on', data.get('includeDueDiligence') == 'on'])),
+    ('incorporation', data.get('sectionB') == 'on' and any([data.get('includeIncorporation') == 'on', data.get('includeGST') == 'on',
+                           data.get('includeFCGPR') == 'on', data.get('includeROC') == 'on',
+                           data.get('includeIEC') == 'on', data.get('includePT') == 'on',
+                           data.get('includeBEN') == 'on', data.get('includeMGT') == 'on',
+                           data.get('includePAN') == 'on', data.get('includeTrademark') == 'on',
+                           data.get('includeForeignPAN') == 'on', data.get('includeBankAssist') == 'on',
+                           data.get('includeRegOffice') == 'on', data.get('includeNomineeDir') == 'on'])),
+    ('accounting',    data.get('sectionC') == 'on' and any([data.get('includeAdvanceTax') == 'on', data.get('includeTDS') == 'on',
+                           data.get('includeIncomeTax') == 'on', data.get('includeGSTComp') == 'on',
+                           data.get('includeCompanyLaw') == 'on', data.get('includeRBIFiling') == 'on',
+                           data.get('includeMasterFiling') == 'on', data.get('includeAcctSetup') == 'on',
+                           data.get('includeAcctMaint') == 'on', data.get('includeFinStmt') == 'on',
+                           data.get('includePayrollSetup') == 'on', data.get('includeShopPOSH') == 'on',
+                           data.get('includePayrollProc') == 'on', data.get('includeLabourLaw') == 'on',
+                           data.get('includeAnnualReturns') == 'on'])),
+    ('transfer',      data.get('sectionD') == 'on' and any([data.get('includeBenchmarking') == 'on', data.get('includeIntercompany') == 'on'])),
+]
     letters = {}
     counter = 0
     for key, is_selected in section_keys:
@@ -463,6 +463,9 @@ Yours Sincerely and on behalf of In.Corp,<br/><br/><br/>"""
 
     # ==================== PAGE 7 - A. HANDOVER SERVICE ====================
     if 'handover' in letters:
+       if not (data.get('includeHandover') == 'on' or data.get('includeDueDiligence') == 'on'):
+            pass  # skip entirely
+       else:
         elements.append(Paragraph(f"{letters['handover']}. One time Handover Service", heading2_style))
         elements.append(Spacer(1, 1))
         handover_intro = f"""Since the company has been in existence since {data.get('companyYear', 'YYYY')}, we shall need to undertake a handover of the current financial, secretarial, payroll and other records of the company from current service provider."""
@@ -491,6 +494,8 @@ This process does not entail conducting a due diligence.</b></font><br/>
             dd_fee = format_currency(data.get('dueDiligenceFee', '0'))
             if not dd_fee:
                 dd_fee = '500 per year'
+            else:
+                dd_fee = dd_fee + ' per year'
             dd_freq = data.get('ddFrequency', 'One-time')
             handover_data.append([
                 Paragraph("""<font color="#C00000" face="Roboto-Bold">Basic due diligence from perspective of*–</font><br/>
@@ -574,6 +579,8 @@ Registration of single location with GST authorities.<br/><br/>
             fcgpr_fee = format_currency(data.get('fcgprFee', '0'))
             if not fcgpr_fee:
                 fcgpr_fee = '1250 per applicant'
+            else:
+                fcgpr_fee = fcgpr_fee + ' per applicant'
             inc_data.append([
                 Paragraph("""<font color="#C00000" face="Roboto-Bold"><b>FCGPR Filing with Reserve Bank of India</b></font><br/>
 Filing of Forms and declaration with RBI as required under FEMA""", normal_style),
@@ -649,11 +656,16 @@ Filing of Forms and declaration with RBI as required under FEMA""", normal_style
             ('includeBankAssist', 'bankAssistFee','250', '<font color="#C00000" face="Roboto-Bold">Assistance in opening of bank account</font>')
         ]
         opt_style = ParagraphStyle('OptStyle', parent=normal_style, leftIndent=0, rightIndent=0)
+        per_director_keys = {'foreignPanFee'}
         for checkbox, fee_key, default_fee, label in optional_services:
             if data.get(checkbox) == 'on':
                 fee = format_currency(data.get(fee_key, '0'))
                 if not fee:
                     fee = default_fee
+                else:
+                    # Append suffix if this fee type needs it
+                    if fee_key in per_director_keys:
+                        fee = fee + ' per director'
                 opt_data.append([Paragraph(label, opt_style), fee])
 
         if len(opt_data) > 1:
@@ -1295,7 +1307,11 @@ complexity of transactions.""", italic_style))
         interco_fee = None
 
         if data.get('includeBenchmarking') == 'on':
-            benchmark_fee = format_currency(data.get('benchmarkingFee', '0')) or '0'
+            benchmark_fee = format_currency(data.get('benchmarkingFee', '0'))
+            if not benchmark_fee:
+                benchmark_fee = '1500 per business activity'
+            else:
+                benchmark_fee = benchmark_fee + ' per business activity'
             tp_data.append([
                 Paragraph('<font color="#C00000" face="Roboto-Bold"><b>Benchmarking</b></font>', normal_style),
                 'One-time',
@@ -1306,7 +1322,7 @@ Preparation of final benchmarking report*.""", normal_style),
             ])
 
         if data.get('includeIntercompany') == 'on':
-            interco_fee = format_currency(data.get('intercompanyAgreementFee', '0')) or '0'
+            interco_fee = format_currency(data.get('intercompanyAgreementFee', '0')) or '1500'
             tp_data.append([
                 Paragraph('<font color="#C00000" face="Roboto-Bold"><b>Inter-company agreement</b></font>', normal_style),
                 'One-time',
