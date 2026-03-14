@@ -63,6 +63,11 @@ except Exception as e:
         pdfmetrics.registerFont(TTFont('Roboto-Italic', os.path.join(BASE_DIR, 'Roboto-Regular.ttf')))
     except:
         pass
+try:
+        pdfmetrics.registerFont(TTFont('Roboto-BoldItalic', os.path.join(BASE_DIR, 'Roboto-BoldItalic.ttf')))
+        print("✅ Roboto BoldItalic registered")
+except Exception as e:
+        print(f"⚠️ Font registration failed: {e}")
 
 # Register font families so <b>, <i>, <b><i> tags work correctly in Paragraphs
 try:
@@ -70,7 +75,8 @@ try:
         normal='Roboto',
         bold='Roboto-Bold',
         italic='Roboto-Italic',
-        boldItalic='Roboto-Bold')
+       
+        boldItalic='Roboto-BoldItalic')
     print("✅ Roboto font family registered")
 except Exception as e:
     print(f"⚠️ Roboto font family registration failed: {e}")
@@ -569,7 +575,7 @@ This process does not entail conducting a due diligence.</b></font><br/>
             if not gst_fee:
                 gst_fee = '350'
             inc_data.append([
-                Paragraph("""<font color="#C00000" face="Roboto-Bold"><b>Goods & Service Tax (GST)</b></font><br/><br/>
+                Paragraph("""<font color="#C00000" face="Roboto-Bold"><b>Goods & Service Tax (GST)</b></font><br/>
 Registration of single location with GST authorities.<br/><br/>
 <i>Registration of every additional location with the GST authorities shall cost USD 100</i>""", normal_style),
                 gst_fee
@@ -592,7 +598,7 @@ Filing of Forms and declaration with RBI as required under FEMA""", normal_style
             if not roc_fee:
                 roc_fee = '500'
             inc_data.append([
-                Paragraph("""<font color="#C00000" face="Roboto-Bold"><b>Statutory Compliances with Registrar of Companies under Companies Act:</b></font><br/><br/>
+                Paragraph("""<font color="#C00000" face="Roboto-Bold"><b>Statutory Compliances with Registrar of Companies under Companies Act:</b></font><br/>
 • Drafting of first board meeting documents<br/><br/>
 • Guidance on capital infusion in bank account<br/><br/>
 • File form with Ministry for commencement of business (COC)<br/><br/>
@@ -609,6 +615,7 @@ Filing of Forms and declaration with RBI as required under FEMA""", normal_style
                 ('FONTSIZE', (0, 0), (1, 0), 10),
                 ('FONTSIZE', (0, 1), (-1, -1), 8),
                 ('ALIGN', (1, 0), (1, -1), 'CENTER'),
+('VALIGN', (1, 1), (1, -1), 'MIDDLE'),
                 ('GRID', (0, 1), (-1, -1), 0.5, colors.black),
                 ('VALIGN', (0, 0), (-1, -1), 'TOP'),
                 ('TOPPADDING', (0, 0), (-1, -1), 8),
@@ -647,7 +654,7 @@ Filing of Forms and declaration with RBI as required under FEMA""", normal_style
         opt_data = [['Services', 'Fees (In USD)']]
         optional_services = [
             ('includeIEC', 'iecFee','200', '<font color="#C00000"face="Roboto-Bold">Import Export Code (IEC Code)</font>'),
-            ('includePT', 'ptFee', '200','<font color="#C00000"face="Roboto-Bold">Profession Tax (PT)</font><br/><br/>•Payments and return filing for company, its employees until the company\'s certificate of commencement is obtained'),
+            ('includePT', 'ptFee', '200','<font color="#C00000"face="Roboto-Bold">Profession Tax (PT)</font><br/>•Payments and return filing for company, its employees until the company\'s certificate of commencement is obtained'),
             ('includeBEN', 'benFee','250', '<font color="#C00000" face="Roboto-Bold">Submission of for Significant Beneficial Ownership via form BEN-2</font>'),
             ('includeMGT', 'mgtFee', '250','<font color="#C00000" face="Roboto-Bold">Filing of requisite forms with Registrar of Companies (ROC) with respect to beneficial and nominee shareholding (via Form MGT 4, MGT 5, MGT 6)</font>'),
             ('includePAN', 'panCardFee','300', '<font color="#C00000" face="Roboto-Bold">Physical PAN Card of the company</font>'),
@@ -747,6 +754,7 @@ To ensure the removal of a nominee director from registrations ***with various a
                 ('FONTSIZE', (0, 0), (1, 0), 10),
                 ('FONTSIZE', (0, 1), (-1, -1), 8),
                 ('ALIGN', (1, 0), (1, -1), 'CENTER'),
+('VALIGN', (1, 1), (1, -1), 'MIDDLE'),
                 ('VALIGN', (0, 0), (-1, -1), 'TOP'),
                 ('GRID', (0, 1), (-1, -1), 0.5, colors.black),
                 ('TOPPADDING', (0, 0), (-1, -1), 5),
@@ -787,7 +795,7 @@ To ensure the removal of a nominee director from registrations ***with various a
         elements.append(Spacer(1, 12))
         elements.append(Paragraph(f"{letters['accounting']}. Accounting / Tax / Payroll / Annual Compliance Services", heading2_style))
         elements.append(Spacer(1, 5))
-        acc_intro = """The below quotation is our base fees for first year of business with limited volume of transactions and may change depending upon volume of work and nature of transactions:"""
+        acc_intro = """If the number of transactions are not known while preparing the proposal then 'Depending on the estimated volume of transactions, business nature, products and services rendered by the company and actual requirements, the below fees are being quoted based on certain assumptions. Fees will be adjusted once InCorp scopes out the details with the client"""
         elements.append(Paragraph(acc_intro, small_style))
         elements.append(Spacer(1, 12))
 
@@ -845,7 +853,7 @@ To ensure the removal of a nominee director from registrations ***with various a
         direct_tax_entries.append([
             '',
             freq,
-            Paragraph("1) Advance tax Compliances<br/> • Quarterly calculations and payment", normal_style),
+            Paragraph("<u>1) Advance tax Compliances</u><br/> • Quarterly calculations and payment", normal_style),
             advance_tax_fee
         ])
     
@@ -858,27 +866,29 @@ To ensure the removal of a nominee director from registrations ***with various a
         direct_tax_entries.append([
             '',
             freq,
-            Paragraph("""2) TDS compliances:<br/>
+            Paragraph("""<u>2) TDS compliances:</u><br/>
 • Calculation and Payment of TDS<br/>
 • Filing of TDS Returns<br/><br/>
-(The above excludes cost of revisions of TDS returns)""", normal_style),
+<font face="Roboto-Italic">(The above excludes cost of revisions of TDS returns. The fee quote for the same shall be shared if applicable)</font>""", normal_style),
             tds_fee
         ])
     
-    if data.get('includeIncomeTax') == 'on':
-        income_tax_fee = format_currency(data.get('incomeTaxReturnFee', '0'))
-        if not income_tax_fee:
-            income_tax_fee = '500 per annum'
-        freq = data.get('incomeTaxFrequency', 'Annual')
-        add_to_totals(freq, income_tax_fee)
-        direct_tax_entries.append([
-            '',
-            freq,
-            Paragraph("""3) Annual Income tax return<br/>
-Computation and filing of Annual Income tax Return<br/><br/>
-4) Statement of Financial Transactions (SFT) – Basic Reporting""", normal_style),
-            income_tax_fee
-        ])
+        if data.get('includeIncomeTax') == 'on':
+            income_tax_fee = format_currency(data.get('incomeTaxReturnFee', '0'))
+            if not income_tax_fee:
+                income_tax_fee = '500 per annum'
+            else:
+                income_tax_fee = income_tax_fee + ' per annum'
+            freq = data.get('incomeTaxFrequency', 'Annual')
+            add_to_totals(freq, income_tax_fee)
+            direct_tax_entries.append([
+                '',
+                freq,
+                Paragraph("""<u>3) Annual Income tax return</u><br/>
+    Computation and filing of Annual Income tax Return<br/><br/>
+    4) Statement of Financial Transactions (SFT) – Basic Reporting""", normal_style),
+                income_tax_fee
+            ])
        
 
     
@@ -902,10 +912,10 @@ Computation and filing of Annual Income tax Return<br/><br/>
         all_sections_data.append([
             Paragraph('<font color="#C00000" face="Roboto-Bold"><b>Indirect tax compliances</b></font>', section_header_style),
             freq,
-            Paragraph("""1) GST Compliances:<br/>
+            Paragraph("""<u>1) GST Compliances:</u><br/>
 • Calculations and payment of GST<br/>
 • Filing of monthly GST Returns<br/><br/>
-(The above excludes cost of revisions of TDS returns. The fee quote for the same shall be shared if applicable) note should be in Italics)""", normal_style),
+<font face="Roboto-Italic">(The above excludes cost of revisions of GST returns. The fee quote for the same shall be shared if applicable)</font>""", normal_style),
             gst_fee
         ])
     
@@ -973,7 +983,7 @@ Assistance on conduction of virtual board meeting – USD 150 per board meeting"
         accounting_entries.append([
             '',
             freq,
-            Paragraph("""Setup of accounting software<br/>
+            Paragraph("""<u>Setup of accounting software</u><br/>
 • Liaison with the software expert for the setup<br/>
 • Ensure due configuration of the software with applicable laws<br/>
 • Short tutorial on guidance with respect to use of accounting software""", normal_style),
@@ -1014,13 +1024,11 @@ Assistance on conduction of virtual board meeting – USD 150 per board meeting"
             ('NOSPLIT', (0, 0), (-1, -1)),
         ]))
         
-        notes_para = Paragraph("""Accounting and maintenance of books of accounts:<br/>
+        notes_para = Paragraph("""<u>Accounting and maintenance of books of accounts:</u><br/>
 • Data entry in accounting software<br/>
 • Weekly processing of Bank Reconciliation<br/>
 • Weekly processing of Purchase invoices<br/>
-• Maker access in bank account/preparing payments<br/>
-• Weekly forwarding of open suppliers/customers<br/>
-• Preparation of Monthly Profit & loss Statement and Balance Sheet""", normal_style)
+""", normal_style)
         
         freq = data.get('acctMaintFrequency', 'Monthly')
         
@@ -1217,9 +1225,14 @@ Assistance on conduction of virtual board meeting – USD 150 per board meeting"
             ('TEXTCOLOR', (0, 0), (-1, 0), colors.black),
             ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
              ('FONTSIZE', (0, 0), (3, 0), 10),
+             
             ('ALIGN', (1, 0), (3, -1), 'CENTER'),
+('ALIGN', (0, 1), (0, -1), 'CENTER'),
+('VALIGN', (1, 1), (1, -1), 'MIDDLE'),
+('VALIGN', (3, 1), (3, -1), 'MIDDLE'),
             ('GRID', (0, 1  ), (-1, -1), 0.5, colors.black),
             ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+            ('VALIGN', (0, 1), (0, -1), 'MIDDLE'),
             ('TOPPADDING', (0, 0), (-1, -1), 4),
             ('BOTTOMPADDING', (0, 0), (-1, -1), 4),
             ('FONTSIZE', (1, 1), (1, -1), 9),
@@ -1343,7 +1356,7 @@ Preparation of final benchmarking report*.""", normal_style),
                 pass
             total_label_style = ParagraphStyle(
     'TotalLabelStyle',
-    parent=small_style,
+    parent=small_style, 
     alignment=TA_CENTER,
 )
 
@@ -1360,6 +1373,10 @@ Preparation of final benchmarking report*.""", normal_style),
                 ('FONTSIZE', (0, 0), (3, 0), 10),
                 ('FONTSIZE', (0, 1), (-1, -1), 8),
                 ('ALIGN', (2, 1), (2, -1), 'LEFT'),
+                ('ALIGN', (0, 1), (0, -1), 'CENTER'),
+('ALIGN', (3, 1), (3, -1), 'CENTER'),
+('VALIGN', (0, 1), (0, -1), 'MIDDLE'),
+('VALIGN', (3, 1), (3, -1), 'MIDDLE'),
                 ('VALIGN', (0, 0), (-1, -1), 'TOP'),
                 ('GRID', (0, 1), (-1, -1), 0.5, colors.black),
                 ('TOPPADDING', (0, 0), (-1, -1), 8),
