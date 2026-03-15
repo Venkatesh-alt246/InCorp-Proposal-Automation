@@ -492,9 +492,8 @@ This process does not entail conducting a due diligence.</b></font><br/>
 • Income Tax Act, 1961<br/>
 • Company's Act, 2013<br/>
 • Foreign Exchange Rules & Regulations""", normal_style),
-                handover_freq,
-                handover_fee
-            ])
+            handover_freq,      # ← plain string
+    handover_fee ])
 
         if data.get('includeDueDiligence') == 'on':
             dd_fee = format_currency(data.get('dueDiligenceFee', '0'))
@@ -532,6 +531,10 @@ This process does not entail conducting a due diligence.</b></font><br/>
                 ('LINEBEFORE', (0, 0), (-1, 0), 0, colors.white),
                 ('LINEAFTER', (0, 0), (-1, 0), 0, colors.white),
                 ('LINEABOVE', (0, 0), (-1, 0), 0, colors.white),
+                ('ALIGN', (1, 1), (2, -1), 'CENTRE'),
+                ('VALIGN', (1, 1), (2, -1), 'MIDDLE'),
+('LEFTPADDING', (1, 1), (2, -1), 0),
+('RIGHTPADDING', (1, 1), (2, -1), 0),
             ]))
             elements.append(handover_table)
             elements.append(Spacer(1, 10))
@@ -543,7 +546,7 @@ This process does not entail conducting a due diligence.</b></font><br/>
 • Professional fees exclude any fees towards regularisation of past non compliances.<br/>
 • Advance of 100% of the above selected option.<br/><br/>"""
         elements.append(Paragraph(notes_a, normal_style))
-        elements.append(Paragraph("* Any other services not specifically quoted above and not specifically agreed separately shall be chargeable as under:", italic_style))
+        elements.append(Paragraph("* <b>Any other services not specifically quoted above and not specifically agreed separately shall be chargeable as under:</b>", italic_style))
         elements.append(Spacer(1, 4))
         elements.append(Paragraph("<b>For Partner: USD 300 per Hour</b>", italic_style))
         elements.append(Spacer(1, 2))
@@ -577,7 +580,7 @@ This process does not entail conducting a due diligence.</b></font><br/>
             inc_data.append([
                 Paragraph("""<font color="#C00000" face="Roboto-Bold"><b>Goods & Service Tax (GST)</b></font><br/>
 Registration of single location with GST authorities.<br/><br/>
-<i>Registration of every additional location with the GST authorities shall cost USD 100</i>""", normal_style),
+<font face="Roboto-Italic">Registration of every additional location with the GST authorities shall cost USD 100</font>""", normal_style),
                 gst_fee
             ])
 
@@ -599,9 +602,9 @@ Filing of Forms and declaration with RBI as required under FEMA""", normal_style
                 roc_fee = '500'
             inc_data.append([
                 Paragraph("""<font color="#C00000" face="Roboto-Bold"><b>Statutory Compliances with Registrar of Companies under Companies Act:</b></font><br/>
-• Drafting of first board meeting documents<br/><br/>
-• Guidance on capital infusion in bank account<br/><br/>
-• File form with Ministry for commencement of business (COC)<br/><br/>
+• Drafting of first board meeting documents<br/>
+• Guidance on capital infusion in bank account<br/>
+• File form with Ministry for commencement of business (COC)<br/>
 • Preparation of statutory shareholders register""", normal_style),
                 roc_fee
             ])
@@ -611,17 +614,19 @@ Filing of Forms and declaration with RBI as required under FEMA""", normal_style
             inc_table.setStyle(TableStyle([
                 ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor("#FFFFFF")),
                 ('TEXTCOLOR', (0, 0), (-1, 0), colors.black),
-                ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-                ('FONTSIZE', (0, 0), (1, 0), 10),
-                ('FONTSIZE', (0, 1), (-1, -1), 8),
-                ('ALIGN', (1, 0), (1, -1), 'CENTER'),
-('VALIGN', (1, 1), (1, -1), 'MIDDLE'),
-                ('GRID', (0, 1), (-1, -1), 0.5, colors.black),
-                ('VALIGN', (0, 0), (-1, -1), 'TOP'),
-                ('TOPPADDING', (0, 0), (-1, -1), 8),
-                ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
-                ('LEFTPADDING', (0, 1), (0, -1), 2),
-                ('RIGHTPADDING', (0, 0), (-1, -1), 8),
+                 ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (1, 0), 10),
+            ('FONTSIZE', (0, 1), (-1, -1), 8),
+            ('ALIGN', (1, 0), (1, -1), 'CENTER'),       # fee col - horizontal center
+            ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+            ('VALIGN', (1, 1), (1, -1), 'MIDDLE'),       # fee col - vertical middle
+            ('GRID', (0, 1), (-1, -1), 0.5, colors.black),
+            ('TOPPADDING', (0, 0), (-1, -1), 8),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
+            ('LEFTPADDING', (0, 1), (0, -1), 2),
+            ('RIGHTPADDING', (0, 0), (-1, -1), 8),
+            ('LEFTPADDING', (1, 0), (1, -1), 4),
+            ('RIGHTPADDING', (1, 0), (1, -1), 4),
                 ('LINEBELOW', (0, 0), (-1, 0), 0.75, colors.black),
                 ('LINEBEFORE', (0, 0), (-1, 0), 0, colors.white),
                 ('LINEAFTER', (0, 0), (-1, 0), 0, colors.white),
@@ -640,7 +645,7 @@ Filing of Forms and declaration with RBI as required under FEMA""", normal_style
 <b><i>For Partner: USD 300 per Hour</i></b><br/><br/>
 <b><i>For Associates: USD 200 per Hour</i></b>"""
         elements.append(Paragraph(notes_b, normal_style))
-        elements.append(Paragraph("* Any other services not specifically quoted above and not specifically agreed separately shall be chargeable as under:", italic_style))
+        elements.append(Paragraph("<b>* Any other services not specifically quoted above and not specifically agreed separately shall be chargeable as under:</b>", italic_style))
         elements.append(Spacer(1, 4))
         elements.append(Paragraph("<b>For Partner: USD 300 per Hour</b>", italic_style))
         elements.append(Spacer(1, 2))
@@ -708,7 +713,7 @@ Filing of Forms and declaration with RBI as required under FEMA""", normal_style
 • Advance of 100% of the above selected option.<br/>
 """
         elements.append(Paragraph(notes_opt, normal_style))
-        elements.append(Paragraph("*Any other services not specifically quoted above and not specifically agreed separately shall be chargeable as under:", italic_style))
+        elements.append(Paragraph("<b>*Any other services not specifically quoted above and not specifically agreed separately shall be chargeable as under:</b>", italic_style))
         elements.append(Spacer(1, 4))
         elements.append(Paragraph("<b>For Partner: USD 300 per Hour</b>", italic_style))
         elements.append(Spacer(1, 2))
@@ -759,19 +764,21 @@ To ensure the removal of a nominee director from registrations ***with various a
                 ('GRID', (0, 1), (-1, -1), 0.5, colors.black),
                 ('TOPPADDING', (0, 0), (-1, -1), 5),
                 ('BOTTOMPADDING', (0, 0), (-1, -1), 5),
-                ('LEFTPADDING', (0, 1), (0, -1), 2),
-                ('RIGHTPADDING', (0, 0), (-1, -1), 8),
+               ('LEFTPADDING', (0, 1), (0, -1), 2),   # ← col 0 padding
+    ('RIGHTPADDING', (0, 0), (0, -1), 8),  # ← col 0 padding
+    ('LEFTPADDING', (1, 0), (1, -1), 4),   # ← col 1 LAST mein
+    ('RIGHTPADDING', (1, 0), (1, -1), 4),  # ← col 1 LAST mein
                 ('LINEBELOW', (0, 0), (-1, 0), 0.75, colors.black),
                 ('LINEBEFORE', (0, 0), (-1, 0), 0, colors.white),
                 ('LINEAFTER', (0, 0), (-1, 0), 0, colors.white),
                 ('LINEABOVE', (0, 0), (-1, 0), 0, colors.white),
             ]))
             elements.append(nominee_table)
-            elements.append(Paragraph("*Failure to engage InCorp's services for regular compliances of the company post the setup such as tax, secretarial, FEMA etc. shall result in forfeiture of the security deposit received against nominee director and registered office services.", italic_style))
-            elements.append(Spacer(1, 4))
-            elements.append(Paragraph("**Any fees for rectification (or) completion of pending past compliances shall attract additional fees and we shall seek your approval prior to commencement of that work.", italic_style))
-            elements.append(Spacer(1, 4))
-            elements.append(Paragraph("*** The Nominee Director shall not sign any return, forms or documents relating to any statutory filing nor will be appointed as the authorized signatory to any of the bank accounts of the entity or under GST, Income Tax any other government portal. The Company may consider appointing one of its key managerial personnel as the authorised signatory across all government portals", italic_style))
+            elements.append(Paragraph("<b>*Failure to engage InCorp's services for regular compliances of the company post the setup such as tax, secretarial, FEMA etc. shall result in forfeiture of the security deposit received against nominee director and registered office services.</b>", italic_style))
+            elements.append(Spacer(1, 2))
+            elements.append(Paragraph("<b>**Any fees for rectification (or) completion of pending past compliances shall attract additional fees and we shall seek your approval prior to commencement of that work.</b>", italic_style))
+            elements.append(Spacer(1, 2))
+            elements.append(Paragraph("<b>*** The Nominee Director shall not sign any return, forms or documents relating to any statutory filing nor will be appointed as the authorized signatory to any of the bank accounts of the entity or under GST, Income Tax any other government portal. The Company may consider appointing one of its key managerial personnel as the authorised signatory across all government portals</b>", italic_style))
 
         # ==================== PAGE 10 - NOMINEE NOTES ====================
             elements.append(Spacer(1, 10))
@@ -784,7 +791,7 @@ To ensure the removal of a nominee director from registrations ***with various a
 • Advance of 100% of the above selected option.<br/>
 """
             elements.append(Paragraph(nominee_notes, normal_style))
-            elements.append(Paragraph("* Any other services not specifically quoted above shall be chargeable as under:", italic_style))
+            elements.append(Paragraph("<b>* Any other services not specifically quoted above shall be chargeable as under:</b>", italic_style))
             elements.append(Spacer(1, 4))
             elements.append(Paragraph("<b>For Partner: USD 300 per Hour</b>", italic_style))
             elements.append(Spacer(1, 2))
@@ -1226,6 +1233,7 @@ Assistance on conduction of virtual board meeting – USD 150 per board meeting"
             ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
              ('FONTSIZE', (0, 0), (3, 0), 10),
              
+             
             ('ALIGN', (1, 0), (3, -1), 'CENTER'),
 ('ALIGN', (0, 1), (0, -1), 'CENTER'),
 ('VALIGN', (1, 1), (1, -1), 'MIDDLE'),
@@ -1236,6 +1244,10 @@ Assistance on conduction of virtual board meeting – USD 150 per board meeting"
             ('TOPPADDING', (0, 0), (-1, -1), 4),
             ('BOTTOMPADDING', (0, 0), (-1, -1), 4),
             ('FONTSIZE', (1, 1), (1, -1), 9),
+            ('LEFTPADDING', (1, 0), (1, -1), 0),     # ← col 1 (Frequency)
+('RIGHTPADDING', (1, 0), (1, -1), 0),
+('LEFTPADDING', (3, 0), (3, -1), 0),     # ← col 3 (Fees)
+('RIGHTPADDING', (3, 0), (3, -1), 0),
             ('LINEBELOW', (0, 0), (-1, 0), 0.75, colors.black),  # ✅ sirf bottom border
 ('LINEBEFORE', (0, 0), (-1, 0), 0, colors.white),    # ✅ left border NONE
 ('LINEAFTER', (0, 0), (-1, 0), 0, colors.white),     # ✅ right border NONE
@@ -1303,7 +1315,7 @@ complexity of transactions.""", italic_style))
 • Advance of 100% of the above selected option<br/>"""
         elements.append(Paragraph(notes_c, normal_style))
         elements.append(Spacer(1, 6))
-        elements.append(Paragraph("*** Any other services not specifically quoted above and not specifically agreed separately shall be chargeable as under:", italic_style))
+        elements.append(Paragraph("<b>*** Any other services not specifically quoted above and not specifically agreed separately shall be chargeable as under:</b>", italic_style))
         elements.append(Spacer(1, 4))
         elements.append(Paragraph("<b>For Partner: USD 300 per Hour</b>", italic_style))
         elements.append(Spacer(1, 2))
@@ -1371,18 +1383,25 @@ Preparation of final benchmarking report*.""", normal_style),
                 ('TEXTCOLOR', (0, 0), (-1, 0), colors.black),
                 ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
                 ('FONTSIZE', (0, 0), (3, 0), 10),
-                ('FONTSIZE', (0, 1), (-1, -1), 8),
-                ('ALIGN', (2, 1), (2, -1), 'LEFT'),
-                ('ALIGN', (0, 1), (0, -1), 'CENTER'),
-('ALIGN', (3, 1), (3, -1), 'CENTER'),
-('VALIGN', (0, 1), (0, -1), 'MIDDLE'),
-('VALIGN', (3, 1), (3, -1), 'MIDDLE'),
+               ('FONTSIZE', (0, 1), (-1, -1), 8),
+# Body alignment
+('ALIGN', (0, 0), (0, 0), 'LEFT'),          # header row - services col
+                ('ALIGN', (1, 0), (3, 0), 'CENTER'),         # header row - other cols
+                ('ALIGN', (1, 1), (1, -1), 'CENTER'),        # frequency col
+                ('ALIGN', (2, 1), (2, -1), 'LEFT'),          # notes col
+                ('ALIGN', (3, 0), (3, -1), 'CENTER'),        # fee col - horizontal CENTER
                 ('VALIGN', (0, 0), (-1, -1), 'TOP'),
-                ('GRID', (0, 1), (-1, -1), 0.5, colors.black),
-                ('TOPPADDING', (0, 0), (-1, -1), 8),
-                ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
-                ('LEFTPADDING', (0, 1), (0, -1), 2),
-                ('RIGHTPADDING', (0, 0), (-1, -1), 8),
+                ('VALIGN', (0, 1), (0, -1), 'MIDDLE'),       # services col
+                ('VALIGN', (1, 1), (1, -1), 'MIDDLE'),       # frequency col
+                ('VALIGN', (3, 1), (3, -1), 'MIDDLE'),       # fee col - vertical MIDDLE
+ 
+# Borders and padding
+('GRID', (0, 1), (-1, -1), 0.5, colors.black),
+('TOPPADDING', (0, 0), (-1, -1), 8),
+('BOTTOMPADDING', (0, 0), (-1, -1), 8),
+('LEFTPADDING', (0, 0), (-1, -1), 8),
+('RIGHTPADDING', (0, 0), (-1, -1), 8),
+('LEFTPADDING', (0, 1), (0, -1), 2),  
                 ('BOX', (0, 0), (-1, -1), 0.5, colors.black),
                 ('LINEBELOW', (0, 0), (-1, 0), 0.75, colors.black),
                 ('LINEBEFORE', (0, 0), (-1, 0), 0, colors.white),
@@ -1405,6 +1424,8 @@ Preparation of final benchmarking report*.""", normal_style),
 • Professional fees exclude all out-of-pocket expenses.<br/>
 • Advance of 100% of the above selected option.<br/>"""
         elements.append(Paragraph(tp_notes, normal_style))
+        elements.append(Spacer(1, 4))
+        elements.append(Paragraph("<b>* Any other services not specifically quoted above shall be chargeable as under:</b>", italic_style))
         elements.append(Spacer(1, 4))
         elements.append(Paragraph("<b>For Partner: USD 300 per Hour</b>", italic_style))
         elements.append(Spacer(1, 2))
