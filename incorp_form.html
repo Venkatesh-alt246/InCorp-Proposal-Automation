@@ -998,33 +998,29 @@
             </div>
 
             <!-- FEE TOTALS BOX -->
-            <div style="
-                margin: 32px 0 10px 0;
-                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                border-radius: 12px;
-                padding: 20px 28px;
-                color: white;
-            ">
+            <div style="margin:32px 0 10px 0; background:linear-gradient(135deg,#667eea 0%,#764ba2 100%); border-radius:12px; padding:20px 28px; color:white;">
                 <div style="font-size:0.75em; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; opacity:0.8; margin-bottom:14px;">💰 Fee Summary</div>
-                <div style="display:flex; flex-wrap:wrap; gap:12px 32px; align-items:center;">
-                    <div>
-                        <div style="font-size:0.72em; opacity:0.75; margin-bottom:3px;">One-time</div>
-                        <div style="font-size:1.3em; font-weight:800;" id="boxOneTime">USD 0</div>
+                <div style="display:grid; grid-template-columns:1fr 1fr 1fr 1fr 1.4fr; gap:10px;">
+                    <div style="background:rgba(255,255,255,0.15); border-radius:8px; padding:14px 16px; text-align:center;">
+                        <div style="font-size:0.72em; opacity:0.8; margin-bottom:6px; font-weight:600; text-transform:uppercase; letter-spacing:0.05em;">One-time</div>
+                        <div style="font-size:1.25em; font-weight:800;" id="boxOneTime">USD 0</div>
                     </div>
-                    <div style="opacity:0.3; font-size:1.4em;">|</div>
-                    <div>
-                        <div style="font-size:0.72em; opacity:0.75; margin-bottom:3px;">Monthly</div>
-                        <div style="font-size:1.3em; font-weight:800;" id="boxMonthly">USD 0</div>
+                    <div style="background:rgba(255,255,255,0.15); border-radius:8px; padding:14px 16px; text-align:center;">
+                        <div style="font-size:0.72em; opacity:0.8; margin-bottom:6px; font-weight:600; text-transform:uppercase; letter-spacing:0.05em;">Monthly</div>
+                        <div style="font-size:1.25em; font-weight:800;" id="boxMonthly">USD 0</div>
                     </div>
-                    <div style="opacity:0.3; font-size:1.4em;">|</div>
-                    <div>
-                        <div style="font-size:0.72em; opacity:0.75; margin-bottom:3px;">Annual</div>
-                        <div style="font-size:1.3em; font-weight:800;" id="boxAnnual">USD 0</div>
+                    <div style="background:rgba(255,255,255,0.15); border-radius:8px; padding:14px 16px; text-align:center;">
+                        <div style="font-size:0.72em; opacity:0.8; margin-bottom:6px; font-weight:600; text-transform:uppercase; letter-spacing:0.05em;">Quarterly</div>
+                        <div style="font-size:1.25em; font-weight:800;" id="boxQuarterly">USD 0</div>
                     </div>
-                    <div style="margin-left:auto; background:rgba(255,255,255,0.18); border-radius:10px; padding:10px 20px; text-align:center;">
-                        <div style="font-size:0.72em; opacity:0.85; margin-bottom:3px;">Total Annual Cost</div>
-                        <div style="font-size:1.6em; font-weight:900;" id="boxGrand">USD 0</div>
-                        <div style="font-size:0.68em; opacity:0.7; margin-top:2px;">(monthly×12 + annual) + one-time: <span id="boxOT">USD 0</span></div>
+                    <div style="background:rgba(255,255,255,0.15); border-radius:8px; padding:14px 16px; text-align:center;">
+                        <div style="font-size:0.72em; opacity:0.8; margin-bottom:6px; font-weight:600; text-transform:uppercase; letter-spacing:0.05em;">Annual</div>
+                        <div style="font-size:1.25em; font-weight:800;" id="boxAnnual">USD 0</div>
+                    </div>
+                    <div style="background:rgba(255,255,255,0.28); border-radius:8px; padding:14px 16px; text-align:center; border:2px solid rgba(255,255,255,0.5);">
+                        <div style="font-size:0.72em; opacity:0.9; margin-bottom:6px; font-weight:700; text-transform:uppercase; letter-spacing:0.05em;">Total Cost</div>
+                        <div style="font-size:1.45em; font-weight:900;" id="boxGrand">USD 0</div>
+                        <div style="font-size:0.62em; opacity:0.75; margin-top:5px;">one-time + (mo×12) + (qtr×4) + annual</div>
                     </div>
                 </div>
                 <div style="font-size:0.68em; opacity:0.6; margin-top:10px;">* Excludes 18% GST</div>
@@ -1290,129 +1286,117 @@
 }
 
 // ===== FEE SUMMARY ENGINE =====
-// Maps: checkboxId -> { label, feeField, freq }
-// freq: 'onetime' | 'monthly' | 'annual' | 'perApplicant'
 const FEE_MAP = {
-    // Section A - Handover
-    includeHandover:       { label: 'Handover service',          feeField: 'handoverFee',              freq: 'onetime',  section: 'fsHandoverLines' },
-    includeDueDiligence:   { label: 'Due diligence',             feeField: 'dueDiligenceFee',           freq: 'onetime',  section: 'fsHandoverLines' },
-
-    // Section B - Incorporation
-    includeIncorporation:  { label: 'Incorporation',             feeField: 'incorporationFee',          freq: 'onetime',  section: 'fsIncorpLines' },
-    includeGST:            { label: 'GST Registration',          feeField: 'gstRegFee',                 freq: 'onetime',  section: 'fsIncorpLines' },
-    includeFCGPR:          { label: 'FCGPR Filing',              feeField: 'fcgprFee',                  freq: 'onetime',  section: 'fsIncorpLines' },
-    includeROC:            { label: 'ROC Compliances',           feeField: 'rocComplianceFee',          freq: 'onetime',  section: 'fsIncorpLines' },
-    includeIEC:            { label: 'IEC Code',                  feeField: 'iecFee',                    freq: 'onetime',  section: 'fsIncorpLines' },
-    includePT:             { label: 'Profession Tax',            feeField: 'ptFee',                     freq: 'onetime',  section: 'fsIncorpLines' },
-    includeBEN:            { label: 'BEN-2 Filing',              feeField: 'benFee',                    freq: 'onetime',  section: 'fsIncorpLines' },
-    includeMGT:            { label: 'MGT Forms',                 feeField: 'mgtFee',                    freq: 'onetime',  section: 'fsIncorpLines' },
-    includePAN:            { label: 'Physical PAN Card',         feeField: 'panCardFee',                freq: 'onetime',  section: 'fsIncorpLines' },
-    includeTrademark:      { label: 'Trademark Registration',    feeField: 'trademarkFee',              freq: 'onetime',  section: 'fsIncorpLines' },
-    includeForeignPAN:     { label: 'PAN for Foreign Director',  feeField: 'foreignPanFee',             freq: 'onetime',  section: 'fsIncorpLines' },
-    includeBankAssist:     { label: 'Bank Account Assistance',   feeField: 'bankAssistFee',             freq: 'onetime',  section: 'fsIncorpLines' },
-    includeRegOffice:      { label: 'Registered Office',         feeField: 'registeredOfficeFee',       freq: 'monthly',  section: 'fsIncorpLines' },
-    includeNomineeDir:     { label: 'Nominee Director',          feeField: 'nomineeDirectorFee',        freq: 'monthly',  section: 'fsIncorpLines' },
-
-    // Section C - Accounting / Tax / Payroll
-    includeAdvanceTax:     { label: 'Advance Tax',               feeField: 'advanceTaxFee',             freq: 'monthly',  section: 'fsAccountingLines' },
-    includeTDS:            { label: 'TDS Compliances',           feeField: 'tdsFee',                    freq: 'monthly',  section: 'fsAccountingLines' },
-    includeIncomeTax:      { label: 'Income Tax Return',         feeField: 'incomeTaxReturnFee',        freq: 'annual',   section: 'fsAccountingLines' },
-    includeGSTComp:        { label: 'GST Compliances',           feeField: 'gstComplianceFee',          freq: 'monthly',  section: 'fsAccountingLines' },
-    includeCompanyLaw:     { label: 'Company Law',               feeField: 'companyLawFee',             freq: 'monthly',  section: 'fsAccountingLines' },
-    includeRBIFiling:      { label: 'RBI Annual Filing',         feeField: 'rbiFilingFee',              freq: 'annual',   section: 'fsAccountingLines' },
-    includeMasterFiling:   { label: 'Master Filing 3CEAA',       feeField: 'masterFilingFee',           freq: 'annual',   section: 'fsAccountingLines' },
-    includeAcctSetup:      { label: 'Accounting Software Setup', feeField: 'accountingSetupFee',        freq: 'onetime',  section: 'fsAccountingLines' },
-    includeAcctMaint:      { label: 'Books Maintenance',         feeField: 'accountingMaintenanceFee',  freq: 'monthly',  section: 'fsAccountingLines' },
-    includeFinStmt:        { label: 'Financial Statements',      feeField: 'financialStatementsFee',    freq: 'annual',   section: 'fsAccountingLines' },
-    includePayrollSetup:   { label: 'Payroll Setup',             feeField: 'payrollSetupFee',           freq: 'onetime',  section: 'fsAccountingLines' },
-    includeShopPOSH:       { label: 'Shop & POSH Setup',         feeField: 'shopPOSHFee',               freq: 'onetime',  section: 'fsAccountingLines' },
-    includePayrollProc:    { label: 'Payroll Processing',        feeField: 'payrollProcessingFee',      freq: 'monthly',  section: 'fsAccountingLines' },
-    includeLabourLaw:      { label: 'Labour Law Compliances',    feeField: 'labourLawFee',              freq: 'monthly',  section: 'fsAccountingLines' },
-    includeAnnualReturns:  { label: 'Annual Labour Returns',     feeField: 'annualReturnsFee',          freq: 'annual',   section: 'fsAccountingLines' },
-
-    // Section D - Transfer Pricing
-    includeBenchmarking:   { label: 'Benchmarking',              feeField: 'benchmarkingFee',           freq: 'onetime',  section: 'fsTransferLines' },
-    includeIntercompany:   { label: 'Inter-company Agreement',   feeField: 'intercompanyAgreementFee',  freq: 'onetime',  section: 'fsTransferLines' },
+    includeHandover:       { label: 'Handover service',          feeField: 'handoverFee',             freqField: 'handoverFrequency',       defaultFreq: 'onetime',   section: 'fsHandoverLines' },
+    includeDueDiligence:   { label: 'Due diligence',             feeField: 'dueDiligenceFee',          freqField: 'ddFrequency',             defaultFreq: 'onetime',   section: 'fsHandoverLines' },
+    includeIncorporation:  { label: 'Incorporation',             feeField: 'incorporationFee',         freqField: null,                      defaultFreq: 'onetime',   section: 'fsIncorpLines' },
+    includeGST:            { label: 'GST Registration',          feeField: 'gstRegFee',                freqField: null,                      defaultFreq: 'onetime',   section: 'fsIncorpLines' },
+    includeFCGPR:          { label: 'FCGPR Filing',              feeField: 'fcgprFee',                 freqField: null,                      defaultFreq: 'onetime',   section: 'fsIncorpLines' },
+    includeROC:            { label: 'ROC Compliances',           feeField: 'rocComplianceFee',         freqField: null,                      defaultFreq: 'onetime',   section: 'fsIncorpLines' },
+    includeIEC:            { label: 'IEC Code',                  feeField: 'iecFee',                   freqField: null,                      defaultFreq: 'onetime',   section: 'fsIncorpLines' },
+    includePT:             { label: 'Profession Tax',            feeField: 'ptFee',                    freqField: null,                      defaultFreq: 'onetime',   section: 'fsIncorpLines' },
+    includeBEN:            { label: 'BEN-2 Filing',              feeField: 'benFee',                   freqField: null,                      defaultFreq: 'onetime',   section: 'fsIncorpLines' },
+    includeMGT:            { label: 'MGT Forms',                 feeField: 'mgtFee',                   freqField: null,                      defaultFreq: 'onetime',   section: 'fsIncorpLines' },
+    includePAN:            { label: 'Physical PAN Card',         feeField: 'panCardFee',               freqField: null,                      defaultFreq: 'onetime',   section: 'fsIncorpLines' },
+    includeTrademark:      { label: 'Trademark Registration',    feeField: 'trademarkFee',             freqField: null,                      defaultFreq: 'onetime',   section: 'fsIncorpLines' },
+    includeForeignPAN:     { label: 'PAN for Foreign Director',  feeField: 'foreignPanFee',            freqField: null,                      defaultFreq: 'onetime',   section: 'fsIncorpLines' },
+    includeBankAssist:     { label: 'Bank Account Assistance',   feeField: 'bankAssistFee',            freqField: null,                      defaultFreq: 'onetime',   section: 'fsIncorpLines' },
+    includeRegOffice:      { label: 'Registered Office',         feeField: 'registeredOfficeFee',      freqField: null,                      defaultFreq: 'monthly',   section: 'fsIncorpLines' },
+    includeNomineeDir:     { label: 'Nominee Director',          feeField: 'nomineeDirectorFee',       freqField: null,                      defaultFreq: 'monthly',   section: 'fsIncorpLines' },
+    includeAdvanceTax:     { label: 'Advance Tax',               feeField: 'advanceTaxFee',            freqField: 'advanceTaxFrequency',     defaultFreq: 'quarterly', section: 'fsAccountingLines' },
+    includeTDS:            { label: 'TDS Compliances',           feeField: 'tdsFee',                   freqField: 'tdsFrequency',            defaultFreq: 'monthly',   section: 'fsAccountingLines' },
+    includeIncomeTax:      { label: 'Income Tax Return',         feeField: 'incomeTaxReturnFee',       freqField: 'incomeTaxFrequency',      defaultFreq: 'annual',    section: 'fsAccountingLines' },
+    includeGSTComp:        { label: 'GST Compliances',           feeField: 'gstComplianceFee',         freqField: 'gstFrequency',            defaultFreq: 'monthly',   section: 'fsAccountingLines' },
+    includeCompanyLaw:     { label: 'Company Law',               feeField: 'companyLawFee',            freqField: 'companyLawFrequency',     defaultFreq: 'monthly',   section: 'fsAccountingLines' },
+    includeRBIFiling:      { label: 'RBI Annual Filing',         feeField: 'rbiFilingFee',             freqField: 'rbiFilingFrequency',      defaultFreq: 'annual',    section: 'fsAccountingLines' },
+    includeMasterFiling:   { label: 'Master Filing 3CEAA',       feeField: 'masterFilingFee',          freqField: 'masterFilingFrequency',   defaultFreq: 'annual',    section: 'fsAccountingLines' },
+    includeAcctSetup:      { label: 'Accounting Software Setup', feeField: 'accountingSetupFee',       freqField: 'acctSetupFrequency',      defaultFreq: 'onetime',   section: 'fsAccountingLines' },
+    includeAcctMaint:      { label: 'Books Maintenance',         feeField: 'accountingMaintenanceFee', freqField: 'acctMaintFrequency',      defaultFreq: 'monthly',   section: 'fsAccountingLines' },
+    includeFinStmt:        { label: 'Financial Statements',      feeField: 'financialStatementsFee',   freqField: 'finStmtFrequency',        defaultFreq: 'annual',    section: 'fsAccountingLines' },
+    includePayrollSetup:   { label: 'Payroll Setup',             feeField: 'payrollSetupFee',          freqField: 'payrollSetupFrequency',   defaultFreq: 'onetime',   section: 'fsAccountingLines' },
+    includeShopPOSH:       { label: 'Shop & POSH Setup',         feeField: 'shopPOSHFee',              freqField: 'shopPOSHFrequency',       defaultFreq: 'onetime',   section: 'fsAccountingLines' },
+    includePayrollProc:    { label: 'Payroll Processing',        feeField: 'payrollProcessingFee',     freqField: 'payrollProcFrequency',    defaultFreq: 'monthly',   section: 'fsAccountingLines' },
+    includeLabourLaw:      { label: 'Labour Law Compliances',    feeField: 'labourLawFee',             freqField: 'labourLawFrequency',      defaultFreq: 'monthly',   section: 'fsAccountingLines' },
+    includeAnnualReturns:  { label: 'Annual Labour Returns',     feeField: 'annualReturnsFee',         freqField: 'annualReturnsFrequency',  defaultFreq: 'annual',    section: 'fsAccountingLines' },
+    includeBenchmarking:   { label: 'Benchmarking',              feeField: 'benchmarkingFee',          freqField: null,                      defaultFreq: 'onetime',   section: 'fsTransferLines' },
+    includeIntercompany:   { label: 'Inter-company Agreement',   feeField: 'intercompanyAgreementFee', freqField: null,                      defaultFreq: 'onetime',   section: 'fsTransferLines' },
 };
 
-const FREQ_LABELS = { onetime: 'one-time', monthly: '/mo', annual: '/yr' };
-const SECTION_IDS = ['fsHandoverLines', 'fsIncorpLines', 'fsAccountingLines', 'fsTransferLines'];
+function resolveFreq(cfg) {
+    if (!cfg.freqField) return cfg.defaultFreq;
+    var sel = document.querySelector('[name="' + cfg.freqField + '"]');
+    if (!sel) return cfg.defaultFreq;
+    var raw = (sel.value || '').toLowerCase().trim();
+    if (raw === 'quarterly')                       return 'quarterly';
+    if (raw === 'annual')                          return 'annual';
+    if (raw === 'one-time' || raw === 'one time')  return 'onetime';
+    if (raw === 'monthly')                         return 'monthly';
+    return cfg.defaultFreq;
+}
+
+var FREQ_LABELS = { onetime: 'one-time', monthly: '/mo', quarterly: '/qtr', annual: '/yr' };
+var SECTION_IDS = ['fsHandoverLines', 'fsIncorpLines', 'fsAccountingLines', 'fsTransferLines'];
 
 function updateFeeSummary() {
-    // Group lines by section
-    const sectionLines = {};
-    SECTION_IDS.forEach(s => sectionLines[s] = []);
+    var sectionLines = {};
+    SECTION_IDS.forEach(function(s) { sectionLines[s] = []; });
 
-    let totalOnetime = 0, totalMonthly = 0, totalAnnual = 0;
+    var totalOnetime = 0, totalMonthly = 0, totalQuarterly = 0, totalAnnual = 0;
 
-    for (const [cbId, cfg] of Object.entries(FEE_MAP)) {
-        const cb = document.getElementById(cbId);
+    for (var cbId in FEE_MAP) {
+        var cfg = FEE_MAP[cbId];
+        var cb = document.getElementById(cbId);
         if (!cb || !cb.checked) continue;
-
-        const feeInput = document.querySelector(`[name="${cfg.feeField}"]`);
-        const feeVal = feeInput ? (parseFloat(feeInput.value) || 0) : 0;
-
-        sectionLines[cfg.section].push({ label: cfg.label, val: feeVal, freq: cfg.freq });
-
-        if (cfg.freq === 'onetime')  totalOnetime += feeVal;
-        if (cfg.freq === 'monthly')  totalMonthly += feeVal;
-        if (cfg.freq === 'annual')   totalAnnual  += feeVal;
+        var feeInput = document.querySelector('[name="' + cfg.feeField + '"]');
+        var feeVal = feeInput ? (parseFloat(feeInput.value) || 0) : 0;
+        var freq = resolveFreq(cfg);
+        sectionLines[cfg.section].push({ label: cfg.label, val: feeVal, freq: freq });
+        if (freq === 'onetime')   totalOnetime   += feeVal;
+        if (freq === 'monthly')   totalMonthly   += feeVal;
+        if (freq === 'quarterly') totalQuarterly += feeVal;
+        if (freq === 'annual')    totalAnnual    += feeVal;
     }
 
-    // Render each section
-    SECTION_IDS.forEach(secId => {
-        const container = document.getElementById(secId);
-        const lines = sectionLines[secId];
+    SECTION_IDS.forEach(function(secId) {
+        var container = document.getElementById(secId);
+        var lines = sectionLines[secId];
         if (lines.length === 0) {
             container.innerHTML = '<div class="fee-empty">No services selected</div>';
         } else {
-            container.innerHTML = lines.map(l =>
-                `<div class="fee-line">
-                    <span class="fee-name">${l.label}</span>
-                    <span class="fee-val">USD ${l.val.toLocaleString()}</span>
-                    <span class="fee-freq">${FREQ_LABELS[l.freq]}</span>
-                </div>`
-            ).join('');
+            container.innerHTML = lines.map(function(l) {
+                return '<div class="fee-line"><span class="fee-name">' + l.label + '</span><span class="fee-val">USD ' + l.val.toLocaleString() + '</span><span class="fee-freq">' + FREQ_LABELS[l.freq] + '</span></div>';
+            }).join('');
         }
     });
 
-    // Totals
-    const grandAnnual = totalMonthly * 12 + totalAnnual;
-    document.getElementById('totOneTime').textContent = `USD ${totalOnetime.toLocaleString()}`;
-    document.getElementById('totMonthly').textContent = `USD ${totalMonthly.toLocaleString()} /mo`;
-    document.getElementById('totAnnual').textContent  = `USD ${totalAnnual.toLocaleString()} /yr`;
-    document.getElementById('totGrand').textContent   = `USD ${grandAnnual.toLocaleString()}`;
-    document.getElementById('totOTSub').textContent   = `USD ${totalOnetime.toLocaleString()}`;
+    var grandAnnual = totalOnetime + (totalMonthly * 12) + (totalQuarterly * 4) + totalAnnual;
 
-    // Update totals box
-    document.getElementById('boxOneTime').textContent = `USD ${totalOnetime.toLocaleString()}`;
-    document.getElementById('boxMonthly').textContent = `USD ${totalMonthly.toLocaleString()}`;
-    document.getElementById('boxAnnual').textContent  = `USD ${totalAnnual.toLocaleString()}`;
-    document.getElementById('boxGrand').textContent   = `USD ${grandAnnual.toLocaleString()}`;
-    document.getElementById('boxOT').textContent      = `USD ${totalOnetime.toLocaleString()}`;
+    document.getElementById('totOneTime').textContent = 'USD ' + totalOnetime.toLocaleString();
+    document.getElementById('totMonthly').textContent = 'USD ' + totalMonthly.toLocaleString() + ' /mo';
+    document.getElementById('totAnnual').textContent  = 'USD ' + totalAnnual.toLocaleString()  + ' /yr';
+    document.getElementById('totGrand').textContent   = 'USD ' + grandAnnual.toLocaleString();
+    try { document.getElementById('totOTSub').textContent = 'USD ' + totalOnetime.toLocaleString(); } catch(e){}
 
-    // Legacy bar elements (hidden but kept to avoid JS errors)
-    try { document.getElementById('barOneTime').textContent = `USD ${totalOnetime.toLocaleString()}`; } catch(e){}
-    try { document.getElementById('barMonthly').textContent = `USD ${totalMonthly.toLocaleString()}`; } catch(e){}
-    try { document.getElementById('barAnnual').textContent  = `USD ${totalAnnual.toLocaleString()}`; } catch(e){}
-    try { document.getElementById('barGrand').textContent   = `USD ${grandAnnual.toLocaleString()}`; } catch(e){}
+    document.getElementById('boxOneTime').textContent   = 'USD ' + totalOnetime.toLocaleString();
+    document.getElementById('boxMonthly').textContent   = 'USD ' + totalMonthly.toLocaleString();
+    document.getElementById('boxQuarterly').textContent = 'USD ' + totalQuarterly.toLocaleString();
+    document.getElementById('boxAnnual').textContent    = 'USD ' + totalAnnual.toLocaleString();
+    document.getElementById('boxGrand').textContent     = 'USD ' + grandAnnual.toLocaleString();
+    try { document.getElementById('boxOT').textContent = 'USD ' + totalOnetime.toLocaleString(); } catch(e){}
+
+    try { document.getElementById('barOneTime').textContent = 'USD ' + totalOnetime.toLocaleString(); } catch(e){}
+    try { document.getElementById('barMonthly').textContent = 'USD ' + totalMonthly.toLocaleString(); } catch(e){}
+    try { document.getElementById('barAnnual').textContent  = 'USD ' + totalAnnual.toLocaleString();  } catch(e){}
+    try { document.getElementById('barGrand').textContent   = 'USD ' + grandAnnual.toLocaleString();  } catch(e){}
 }
 
-// Update fee summary whenever any checkbox changes
 document.addEventListener('change', function(e) {
-    if (e.target.type === 'checkbox') {
-        updateFeeSummary();
-    }
+    if (e.target.type === 'checkbox' || e.target.tagName === 'SELECT') updateFeeSummary();
 });
-
-// Listen to all fee inputs for live updates
 document.addEventListener('input', function(e) {
-    if (e.target.type === 'number' || e.target.type === 'text') {
-        updateFeeSummary();
-    }
+    if (e.target.type === 'number' || e.target.type === 'text') updateFeeSummary();
 });
 
-// Initial render
 updateFeeSummary();
     </script>
 </body>

@@ -315,6 +315,18 @@ def build_pdf_elements(data):
         rightIndent=0,
         firstLineIndent=0
     )
+    bullet_style = ParagraphStyle(
+    'BulletStyle',
+    parent=styles['Normal'],
+    fontSize=9,
+    leading=13,
+    fontName='MicrosoftSansSerif',
+    textColor=colors.HexColor("#000000"),
+    alignment=TA_JUSTIFY,
+    leftIndent=10,        # ← text 10pt se start hoga
+    firstLineIndent=-10,  # ← bullet 10pt peeche jaayega (hanging indent)
+    rightIndent=0,
+)
 
     note_style = ParagraphStyle(
         'NoteStyle',
@@ -491,7 +503,7 @@ This process does not entail conducting a due diligence.</b></font><br/>
 • GST laws/regulations<br/>
 • Income Tax Act, 1961<br/>
 • Company's Act, 2013<br/>
-• Foreign Exchange Rules & Regulations""", normal_style),
+• Foreign Exchange Rules & Regulations""", bullet_style),
             handover_freq,      # ← plain string
     handover_fee ])
 
@@ -507,7 +519,7 @@ This process does not entail conducting a due diligence.</b></font><br/>
 • Company's Act, 2013<br/>
 • Income Tax Act, 1961<br/>
 • Goods and Service Tax Act, 2017<br/>
-• Foreign Exchange Management Act, 1999""", normal_style),
+• Foreign Exchange Management Act, 1999""", bullet_style),
                 dd_freq,
                 dd_fee
             ])
@@ -569,7 +581,7 @@ This process does not entail conducting a due diligence.</b></font><br/>
                 Paragraph("""<font color="#C00000" face="Roboto-Bold"><b>Incorporation</b></font><br/>
 • PAN of the company included<br/>
 • TAN of the company included<br/>
-• Employees' Provident Fund and Miscellaneous Provision Act, Employees' State Insurance Corporation Act included""", normal_style),
+• Employees' Provident Fund and Miscellaneous Provision Act, Employees' State Insurance Corporation Act included""", bullet_style),
                 inc_fee
             ])
 
@@ -605,7 +617,7 @@ Filing of Forms and declaration with RBI as required under FEMA""", normal_style
 • Drafting of first board meeting documents<br/>
 • Guidance on capital infusion in bank account<br/>
 • File form with Ministry for commencement of business (COC)<br/>
-• Preparation of statutory shareholders register""", normal_style),
+• Preparation of statutory shareholders register""", bullet_style),
                 roc_fee
             ])
 
@@ -733,7 +745,7 @@ Filing of Forms and declaration with RBI as required under FEMA""", normal_style
             nominee_data.append([
                 Paragraph("""<font color="#C00000" face="Roboto-Bold"><b>Registered Office Service</b></font><br/><br/>
 A refundable Security deposit @USD 2500 applies**. Refundable upon cessation of Registered office service.""", normal_style),
-                reg_office_fee
+                Paragraph(reg_office_fee, ParagraphStyle('nf1', fontName='MicrosoftSansSerif', fontSize=8, alignment=TA_CENTER, leading=11))
             ])
 
         if data.get('includeNomineeDir') == 'on':
@@ -747,31 +759,31 @@ Director's fee for attending a physical or recorded or live board meeting @USD30
 Every nominee director needs to be protected under a director's indemnity policy. Premium of indemnity bond to be charged on actual basis. InCorp shall enter into a separate nominee directors' agreement at the time of engagement.<br/><br/>
 To ensure the removal of a nominee director from registrations ***with various authorities where required, InCorp must be notified at least three months in advance. Additionally, professional fees for this service will continue to be charged until the removal is reflected by all relevant authorities as well as Bank & new director is appointed in his place.
 """, normal_style),
-                nom_dir_fee
+                    Paragraph(nom_dir_fee, ParagraphStyle('nf2', fontName='MicrosoftSansSerif', fontSize=8, alignment=TA_CENTER, leading=11))
             ])
 
         if len(nominee_data) > 1:
             nominee_table = Table(nominee_data, colWidths=[5.7*inch, 1.5*inch])
             nominee_table.setStyle(TableStyle([
                 ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor("#FFFCFC")),
-                ('TEXTCOLOR', (0, 0), (-1, 0), colors.black),
-                ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-                ('FONTSIZE', (0, 0), (1, 0), 10),
-                ('FONTSIZE', (0, 1), (-1, -1), 8),
-                ('ALIGN', (1, 0), (1, -1), 'CENTER'),
-('VALIGN', (1, 1), (1, -1), 'MIDDLE'),
-                ('VALIGN', (0, 0), (-1, -1), 'TOP'),
-                ('GRID', (0, 1), (-1, -1), 0.5, colors.black),
-                ('TOPPADDING', (0, 0), (-1, -1), 5),
-                ('BOTTOMPADDING', (0, 0), (-1, -1), 5),
-               ('LEFTPADDING', (0, 1), (0, -1), 2),   # ← col 0 padding
-    ('RIGHTPADDING', (0, 0), (0, -1), 8),  # ← col 0 padding
-    ('LEFTPADDING', (1, 0), (1, -1), 4),   # ← col 1 LAST mein
-    ('RIGHTPADDING', (1, 0), (1, -1), 4),  # ← col 1 LAST mein
-                ('LINEBELOW', (0, 0), (-1, 0), 0.75, colors.black),
-                ('LINEBEFORE', (0, 0), (-1, 0), 0, colors.white),
-                ('LINEAFTER', (0, 0), (-1, 0), 0, colors.white),
-                ('LINEABOVE', (0, 0), (-1, 0), 0, colors.white),
+    ('TEXTCOLOR', (0, 0), (-1, 0), colors.black),
+    ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+    ('FONTSIZE', (0, 0), (1, 0), 10),
+    ('FONTSIZE', (0, 1), (-1, -1), 8),
+    ('ALIGN', (1, 0), (1, -1), 'CENTER'),
+    ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+    ('GRID', (0, 1), (-1, -1), 0.5, colors.black),
+    ('TOPPADDING', (0, 0), (-1, -1), 5),
+    ('BOTTOMPADDING', (0, 0), (-1, -1), 5),
+    ('LEFTPADDING', (0, 1), (0, -1), 2),
+    ('RIGHTPADDING', (0, 0), (0, -1), 8),
+    ('LEFTPADDING', (1, 0), (1, -1), 4),
+    ('RIGHTPADDING', (1, 0), (1, -1), 4),
+    ('LINEBELOW', (0, 0), (-1, 0), 0.75, colors.black),
+    ('LINEBEFORE', (0, 0), (-1, 0), 0, colors.white),
+    ('LINEAFTER', (0, 0), (-1, 0), 0, colors.white),
+    ('LINEABOVE', (0, 0), (-1, 0), 0, colors.white),
+    ('VALIGN', (1, 1), (1, -1), 'MIDDLE'), 
             ]))
             elements.append(nominee_table)
             elements.append(Paragraph("<b>*Failure to engage InCorp's services for regular compliances of the company post the setup such as tax, secretarial, FEMA etc. shall result in forfeiture of the security deposit received against nominee director and registered office services.</b>", italic_style))
@@ -860,7 +872,7 @@ To ensure the removal of a nominee director from registrations ***with various a
         direct_tax_entries.append([
             '',
             freq,
-            Paragraph("<u>1) Advance tax Compliances</u><br/> • Quarterly calculations and payment", normal_style),
+            Paragraph("<u>1) Advance tax Compliances</u><br/> • Quarterly calculations and payment", bullet_style),
             advance_tax_fee
         ])
     
@@ -876,7 +888,7 @@ To ensure the removal of a nominee director from registrations ***with various a
             Paragraph("""<u>2) TDS compliances:</u><br/>
 • Calculation and Payment of TDS<br/>
 • Filing of TDS Returns<br/><br/>
-<font face="Roboto-Italic">(The above excludes cost of revisions of TDS returns. The fee quote for the same shall be shared if applicable)</font>""", normal_style),
+<font face="Roboto-Italic">(The above excludes cost of revisions of TDS returns. The fee quote for the same shall be shared if applicable)</font>""", bullet_style),
             tds_fee
         ])
     
@@ -922,7 +934,7 @@ To ensure the removal of a nominee director from registrations ***with various a
             Paragraph("""<u>1) GST Compliances:</u><br/>
 • Calculations and payment of GST<br/>
 • Filing of monthly GST Returns<br/><br/>
-<font face="Roboto-Italic">(The above excludes cost of revisions of GST returns. The fee quote for the same shall be shared if applicable)</font>""", normal_style),
+<font face="Roboto-Italic">(The above excludes cost of revisions of GST returns. The fee quote for the same shall be shared if applicable)</font>""", bullet_style),
             gst_fee
         ])
     
@@ -993,7 +1005,7 @@ Assistance on conduction of virtual board meeting – USD 150 per board meeting"
             Paragraph("""<u>Setup of accounting software</u><br/>
 • Liaison with the software expert for the setup<br/>
 • Ensure due configuration of the software with applicable laws<br/>
-• Short tutorial on guidance with respect to use of accounting software""", normal_style),
+• Short tutorial on guidance with respect to use of accounting software""", bullet_style),
             acct_setup_fee
         ])
     
@@ -1035,7 +1047,7 @@ Assistance on conduction of virtual board meeting – USD 150 per board meeting"
 • Data entry in accounting software<br/>
 • Weekly processing of Bank Reconciliation<br/>
 • Weekly processing of Purchase invoices<br/>
-""", normal_style)
+""", bullet_style)
         
         freq = data.get('acctMaintFrequency', 'Monthly')
         
@@ -1064,7 +1076,7 @@ Assistance on conduction of virtual board meeting – USD 150 per board meeting"
             '',
             freq,
             Paragraph("""• Preparation of the financial Statements as per the Indian accounting Standards<br/>
-• Liaising with auditors for audit, compliance and related matters""", normal_style),
+• Liaising with auditors for audit, compliance and related matters""", bullet_style),
             fin_stmt_fee
         ])
     
@@ -1172,7 +1184,7 @@ Assistance on conduction of virtual board meeting – USD 150 per board meeting"
 • Employees State Insurance Corporation<br/>
 • Profession Tax<br/>
 •Labor Welfare Fund<br/>
-(for employees upto 20 – fixed fee)""", normal_style),
+(for employees upto 20 – fixed fee)""", bullet_style),
             labour_fee
         ])
     
@@ -1189,7 +1201,7 @@ Assistance on conduction of virtual board meeting – USD 150 per board meeting"
 • Sexual Harassment of Women at Workplace Act, 2013<br/>
 • Shop and Establishment Act<br/>
 • Maternity Act<br/>
-• Gratuity Act""", normal_style),
+• Gratuity Act""", bullet_style),
             annual_ret_fee
         ])
     
@@ -1228,6 +1240,7 @@ Assistance on conduction of virtual board meeting – USD 150 per board meeting"
         
         
         table_style_all = [
+            
             ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor("#FFFFFF")),
             ('TEXTCOLOR', (0, 0), (-1, 0), colors.black),
             ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
@@ -1341,7 +1354,7 @@ complexity of transactions.""", italic_style))
                 Paragraph('<font color="#C00000" face="Roboto-Bold"><b>Benchmarking</b></font>', normal_style),
                 'One-time',
                 Paragraph("""1. Assistance in conducting Functional, Asset and Risk Analysis of the proposed transaction to be entered between related parties.<br/>
-2. Assisting in arriving at the arm's length price or margin range that may be applicable to the proposed transaction. Arm's Length is price that Indian &lt;company name&gt; would have charged any other non related party/clients globally for similar services. This is a legal requirement from Indian Income tax to ensure Indian revenue department is not a loss of tax revenue. and<br/>
+2. Assisting in arriving at the arm's length price or margin range that may be applicable to the proposed transaction. Arm's Length is price that {company_name} would have charged any other non related party/clients globally for similar services. This is a legal requirement from Indian Income tax to ensure Indian revenue department is not a loss of tax revenue. and<br/>
 Preparation of final benchmarking report*.""", normal_style),
                 benchmark_fee
             ])
