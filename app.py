@@ -135,10 +135,10 @@ class CoverPageWithCompany(Flowable):
             c.restoreState()
         
         c.setFillColor(colors.white)
-        c.setFont("MicrosoftSansSerif", 20)
+        c.setFont("Roboto-Bold", 18)
         
         page_width = letter[0]  # Use actual page width
-        text_width = c.stringWidth(self.company_name, "MicrosoftSansSerif", 20)
+        text_width = c.stringWidth(self.company_name, "Roboto-Bold", 18)
         x_position = (page_width - text_width) / 2  # Center on full page
         y_position = 1*inch  # Match the red banner position
         
@@ -696,7 +696,7 @@ Filing of Forms and declaration with RBI as required under FEMA""", normal_style
             ('includeIEC', 'iecFee','200', '<font color="#C00000"face="Roboto-Bold">Import Export Code (IEC Code)</font>'),
             ('includePT', 'ptFee', '200',
  '<font color="#C00000" face="Roboto-Bold">Profession Tax (PT)</font><br/>'
- '\u00a0\u00a0\u00a0\u2022 Payments and return filing for company, its employees until the company\'s certificate of commencement is obtained'),
+ '\u2022 Payments and return filing for company, its employees until the company\'s certificate of commencement is obtained'),
             ('includeBEN', 'benFee','250', '<font color="#C00000" face="Roboto-Bold">Submission of for Significant Beneficial Ownership via form BEN-2</font>'),
             ('includeMGT', 'mgtFee', '250','<font color="#C00000" face="Roboto-Bold">Filing of requisite forms with Registrar of Companies (ROC) with respect to beneficial and nominee shareholding (via Form MGT 4, MGT 5, MGT 6)</font>'),
             ('includePAN', 'panCardFee','300', '<font color="#C00000" face="Roboto-Bold">Physical PAN Card of the company</font>'),
@@ -704,7 +704,7 @@ Filing of Forms and declaration with RBI as required under FEMA""", normal_style
             ('includeForeignPAN', 'foreignPanFee','200 per director', '<font color="#C00000" face="Roboto-Bold">PAN for foreign director</font>'),
             ('includeBankAssist', 'bankAssistFee','250', '<font color="#C00000" face="Roboto-Bold">Assistance in opening of bank account</font>')
         ]
-        opt_style = ParagraphStyle('OptStyle', parent=normal_style, leftIndent=0, rightIndent=0)
+        opt_style = ParagraphStyle('OptStyle', parent=normal_style, leftIndent=10, firstLineIndent=-10, rightIndent=0)
         per_director_keys = {'foreignPanFee'}
         for checkbox, fee_key, default_fee, label in optional_services:
             if data.get(checkbox) == 'on':
@@ -1392,18 +1392,18 @@ complexity of transactions.""", italic_style))
                 benchmark_fee = benchmark_fee + ' per business activity'
             tp_data.append([
                 Paragraph('<font color="#C00000" face="Roboto-Bold"><b>Benchmarking</b></font>', normal_style),
-                'One-time',
+                Paragraph('One-time', ParagraphStyle('freq', fontName='MicrosoftSansSerif', fontSize=10, alignment=TA_CENTER)),
                 Paragraph(f"""1. Assistance in conducting Functional, Asset and Risk Analysis of the proposed transaction to be entered between related parties.<br/>
 2. Assisting in arriving at the arm's length price or margin range that may be applicable to the proposed transaction. Arm's Length is price that {company_name} would have charged any other non related party/clients globally for similar services. This is a legal requirement from Indian Income tax to ensure Indian revenue department is not a loss of tax revenue. and<br/>
 Preparation of final benchmarking report*.""", normal_style),
-                 Paragraph(benchmark_fee+ ' per buisness activity', ParagraphStyle('fee', fontName='MicrosoftSansSerif', fontSize=10, alignment=TA_CENTER))  # ✅ Wrap fee
+                 Paragraph(benchmark_fee, ParagraphStyle('fee', fontName='MicrosoftSansSerif', fontSize=10, alignment=TA_CENTER))  # ✅ Wrap fee
             ])
 
         if data.get('includeIntercompany') == 'on':
             interco_fee = format_currency(data.get('intercompanyAgreementFee', '0')) or '1500'
             tp_data.append([
                 Paragraph('<font color="#C00000" face="Roboto-Bold"><b>Inter-company agreement</b></font>', normal_style),
-                'One-time',
+                Paragraph('One-time', ParagraphStyle('freq', fontName='MicrosoftSansSerif', fontSize=10, alignment=TA_CENTER)),
                 Paragraph("""Drafting and finalizing of Inter-company service agreement covering detailed description of service to be provided, components to be included while calculating cost of services, Invoicing period, Receivable cycle, withholding, ownership rights, effective date of agreement, indemnity etc. in compliance with the Transfer Pricing regulations defined under Income tax laws and other applicable Indian laws""", normal_style),
                   Paragraph(interco_fee+ ' per activity', ParagraphStyle('fee', fontName='MicrosoftSansSerif', fontSize=10, alignment=TA_CENTER))  # ✅ Wrap fee
             ])
