@@ -1711,7 +1711,7 @@ def generate_proposal_word():
                 pPr.append(jc)
             return pPr
 
-        def _make_rPr(bold=False, italic=False, size_pt=9, color_hex=None,
+        def _make_rPr(bold=False, italic=False, size_pt=10, color_hex=None,
                       font_name='Microsoft Sans Serif', underline=False):
             rPr = OxmlElement('w:rPr')
             if font_name:
@@ -1729,7 +1729,7 @@ def generate_proposal_word():
                 col = OxmlElement('w:color'); col.set(qn('w:val'), color_hex.lstrip('#')); rPr.append(col)
             return rPr
 
-        def _p(text='', bold=False, italic=False, size_pt=9, color_hex=None,
+        def _p(text='', bold=False, italic=False, size_pt=10, color_hex=None,
                font='Microsoft Sans Serif', align='left', sb=0, sa=0, li=0, fi=0, underline=False):
             p = OxmlElement('w:p')
             p.append(_make_pPr(align=align, space_before=sb, space_after=sa, left_indent=li, first_line=fi))
@@ -1753,7 +1753,7 @@ def generate_proposal_word():
         def _h1(text):   return _p(text, bold=True, size_pt=12, color_hex='C00000', font='Roboto', sb=12, sa=10)
         def _h2(text):   return _p(text, bold=True, size_pt=11, color_hex='C00000', font='Roboto', sb=10, sa=6, li=4)
         def _body(text): return _p(text, size_pt=11, font='Roboto', align='both', sa=2)
-        def _bold(text): return _p(text, bold=True, size_pt=10, font='Roboto', align='both', sa=2)
+        def _bold(text): return _p(text, bold=True, size_pt=11, font='Roboto', align='both', sa=2)
         def _ital(text, size_pt=10): return _p(text, italic=True, size_pt=size_pt, font='Roboto', sb=2, sa=2)
         def _bul(text):  return _p(text, size_pt=10, font='Roboto', align='both', li=10, fi=-10, sa=2)
 
@@ -1919,7 +1919,7 @@ def generate_proposal_word():
             add(_body(data.get('clientAddress','')))
         add(_sp(10))
         add(_body(f"Dear {data.get('clientName','XXXX').split()[0]},"), _sp(3))
-        add(_p('RE: FEE PROPOSAL', bold=True, size_pt=9, color_hex='C00000', font='Roboto', align='both', sa=4))
+        add(_p('RE: FEE PROPOSAL', bold=True, size_pt=10, color_hex='C00000', font='Roboto', align='both', sa=4))
         for line in ['We are pleased to be presenting our proposal to you.','',
             "Our team of experienced professionals work very closely with clients on various corporate, accounting, compliance and governance matter and identify the unique requirements of individual organizations. As a strong believer of long-term partnerships, we are committed to providing tailored solutions that not only meet our clients\u2019 objectives, but also giving them a peace of mind to focus on their core businesses.",'',
             "The following pages outline our services tailor made to you and we trust that our proposal meets your expectations. We are excited to work with you and look forward to a long and mutually beneficial working relationship with you and the company.",'',
@@ -1946,7 +1946,7 @@ def generate_proposal_word():
         if 'handover' in letters:
             add(_h2(f"{letters['handover']}. One time Handover Service"))
             add(_body(f"Since the company has been in existence since {data.get('companyYear','YYYY')}, we shall need to undertake a handover of the current financial, secretarial, payroll and other records of the company from current service provider."))
-            add(_sp(3))
+            add(_sp(2))
             h_row = [
                 {'paragraphs':[_p('Services',bold=True,size_pt=10)],'is_header':True},
                 {'paragraphs':[_p('Frequency',bold=True,size_pt=10,align='center')],'is_header':True},
@@ -1956,20 +1956,20 @@ def generate_proposal_word():
             if data.get('includeHandover')=='on':
                 fee = format_currency(data.get('handoverFee','0')) or '500'
                 rows.append([
-                    {'paragraphs':[_p('Handover from erstwhile service provider of various records under laws as mentioned below. This process does not entail conducting a due diligence.',bold=True,size_pt=9,color_hex='C00000',font='Roboto',align='both'),_bul('\u2022 GST laws/regulations'),_bul('\u2022 Income Tax Act, 1961'),_bul("\u2022 Company\u2019s Act, 2013"),_bul('\u2022 Foreign Exchange Rules & Regulations')],'valign':'top'},
-                    {'paragraphs':[_p(data.get('handoverFrequency','One-time'),size_pt=9,align='center')],'valign':'center'},
-                    {'paragraphs':[_p(fee,size_pt=9,align='center')],'valign':'center'},
+                    {'paragraphs':[_p('Handover from erstwhile service provider of various records under laws as mentioned below. This process does not entail conducting a due diligence.',bold=True,size_pt=10,color_hex='C00000',font='Roboto',align='both'),_bul('\u2022 GST laws/regulations'),_bul('\u2022 Income Tax Act, 1961'),_bul("\u2022 Company\u2019s Act, 2013"),_bul('\u2022 Foreign Exchange Rules & Regulations')],'valign':'top'},
+                    {'paragraphs':[_p(data.get('handoverFrequency','One-time'),size_pt=10,align='center')],'valign':'center'},
+                    {'paragraphs':[_p(fee,size_pt=10,align='center')],'valign':'center'},
                 ])
             if data.get('includeDueDiligence')=='on':
                 fee = (format_currency(data.get('dueDiligenceFee','0')) or '500') + ' per year'
                 rows.append([
-                    {'paragraphs':[_p('Basic due diligence from perspective of*\u2013',bold=True,size_pt=9,color_hex='C00000',font='Roboto'),_bul("\u2022 Company\u2019s Act, 2013"),_bul('\u2022 Income Tax Act, 1961'),_bul('\u2022 Goods and Service Tax Act, 2017'),_bul('\u2022 Foreign Exchange Management Act, 1999')],'valign':'top'},
-                    {'paragraphs':[_p(data.get('ddFrequency','One-time'),size_pt=9,align='center')],'valign':'center'},
-                    {'paragraphs':[_p(fee,size_pt=9,align='center')],'valign':'center'},
+                    {'paragraphs':[_p('Basic due diligence from perspective of*\u2013',bold=True,size_pt=10,color_hex='C00000',font='Roboto'),_bul("\u2022 Company\u2019s Act, 2013"),_bul('\u2022 Income Tax Act, 1961'),_bul('\u2022 Goods and Service Tax Act, 2017'),_bul('\u2022 Foreign Exchange Management Act, 1999')],'valign':'top'},
+                    {'paragraphs':[_p(data.get('ddFrequency','One-time'),size_pt=10,align='center')],'valign':'center'},
+                    {'paragraphs':[_p(fee,size_pt=10,align='center')],'valign':'center'},
                 ])
             if len(rows)>1:
-                add(_make_table([4.4,1.5,1.5], rows), _sp(3))
-                add(_p('*Any fees for rectification (or) completion of pending past compliances shall attract additional fees and we shall seek your approval prior to commencement of that work.', bold=True, size_pt=9, font='Roboto',italic=True, align='both', sa=2), _sp(2))
+                add(_make_table([4.4,1.5,1.5], rows), _sp(1))
+                add(_p('*Any fees for rectification (or) completion of pending past compliances shall attract additional fees and we shall seek your approval prior to commencement of that work.', bold=True, size_pt=10, font='Roboto',italic=True, align='both', sa=2), _sp(2))
             add(*_note_block(['All fees quoted above exclude 18% GST','Professional fees exclude any fees towards regularisation of past non compliances.','Advance of 100% of the above selected option.']))
             add(*_hourly())
 
@@ -1980,16 +1980,16 @@ def generate_proposal_word():
             rows = [h_row]
             if data.get('includeIncorporation')=='on':
                 fee = format_currency(data.get('incorporationFee','0')) or '1500'
-                rows.append([{'paragraphs':[_p('Incorporation',bold=True,size_pt=9,color_hex='C00000',font='Roboto'),_bul('\u2022 PAN of the company included'),_bul('\u2022 TAN of the company included'),_bul("\u2022 Employees\u2019 Provident Fund and Miscellaneous Provision Act, Employees\u2019 State Insurance Corporation Act included")],'valign':'top'},{'paragraphs':[_p(fee,size_pt=9,align='center')],'valign':'center'}])
+                rows.append([{'paragraphs':[_p('Incorporation',bold=True,size_pt=10,color_hex='C00000',font='Roboto'),_bul('\u2022 PAN of the company included'),_bul('\u2022 TAN of the company included'),_bul("\u2022 Employees\u2019 Provident Fund and Miscellaneous Provision Act, Employees\u2019 State Insurance Corporation Act included")],'valign':'top'},{'paragraphs':[_p(fee,size_pt=10,align='center')],'valign':'center'}])
             if data.get('includeGST')=='on':
                 fee = format_currency(data.get('gstRegFee','0')) or '350'
-                rows.append([{'paragraphs':[_p('Goods & Service Tax (GST)',bold=True,size_pt=9,color_hex='C00000',font='Roboto'),_body('Registration of single location with GST authorities.'),_ital('Registration of every additional location with the GST authorities shall cost USD 100')],'valign':'top'},{'paragraphs':[_p(fee,size_pt=9,align='center')],'valign':'center'}])
+                rows.append([{'paragraphs':[_p('Goods & Service Tax (GST)',bold=True,size_pt=10,color_hex='C00000',font='Roboto'),_body('Registration of single location with GST authorities.'),_ital('Registration of every additional location with the GST authorities shall cost USD 100')],'valign':'top'},{'paragraphs':[_p(fee,size_pt=10,align='center')],'valign':'center'}])
             if data.get('includeFCGPR')=='on':
                 fee = (format_currency(data.get('fcgprFee','0')) or '1250') + ' per applicant'
-                rows.append([{'paragraphs':[_p('FCGPR Filing with Reserve Bank of India',bold=True,size_pt=9,color_hex='C00000',font='Roboto'),_body('Filing of Forms and declaration with RBI as required under FEMA')],'valign':'top'},{'paragraphs':[_p(fee,size_pt=9,align='center')],'valign':'center'}])
+                rows.append([{'paragraphs':[_p('FCGPR Filing with Reserve Bank of India',bold=True,size_pt=10,color_hex='C00000',font='Roboto'),_body('Filing of Forms and declaration with RBI as required under FEMA')],'valign':'top'},{'paragraphs':[_p(fee,size_pt=10,align='center')],'valign':'center'}])
             if data.get('includeROC')=='on':
                 fee = format_currency(data.get('rocComplianceFee','0')) or '500'
-                rows.append([{'paragraphs':[_p('Statutory Compliances with Registrar of Companies under Companies Act:',bold=True,size_pt=9,color_hex='C00000',font='Roboto'),_bul('\u2022 Drafting of first board meeting documents'),_bul('\u2022 Guidance on capital infusion in bank account'),_bul('\u2022 File form with Ministry for commencement of business (COC)'),_bul('\u2022 Preparation of statutory shareholders register')],'valign':'top'},{'paragraphs':[_p(fee,size_pt=9,align='center')],'valign':'center'}])
+                rows.append([{'paragraphs':[_p('Statutory Compliances with Registrar of Companies under Companies Act:',bold=True,size_pt=10,color_hex='C00000',font='Roboto'),_bul('\u2022 Drafting of first board meeting documents'),_bul('\u2022 Guidance on capital infusion in bank account'),_bul('\u2022 File form with Ministry for commencement of business (COC)'),_bul('\u2022 Preparation of statutory shareholders register')],'valign':'top'},{'paragraphs':[_p(fee,size_pt=10,align='center')],'valign':'center'}])
             if len(rows)>1: add(_make_table([5.7,1.5], rows), _sp(5))
             add(*_note_block(['All fees quoted above exclude 18% GST.','Professional fees exclude all out-of-pocket expenses like filing fees, courier expenses, apostilling & notary cost to any authorities/departments, statutory fees payable to Registrar of companies (ROC) towards incorporation etc. other than those mentioned above.','Advance of 100% of the above selected option.','On finalization of shareholding structure, we shall be able to guide on compliances needed for issuance of share certificates and shall share a separate fee quote for the same.']))
             add(*_hourly(), _sp(4))
@@ -2000,10 +2000,10 @@ def generate_proposal_word():
                 if data.get(cb)=='on':
                     fee = format_currency(data.get(fk,'0')) or dflt.split()[0]
                     if fk=='foreignPanFee' and format_currency(data.get(fk,'0')): fee+=' per director'
-                    opt_rows.append([{'paragraphs':[_p(lbl,bold=True,size_pt=9,color_hex='C00000',font='Roboto')],'valign':'top'},{'paragraphs':[_p(fee,size_pt=9,align='center')],'valign':'center'}])
-            if len(opt_rows)>1: add(_make_table([5.7,1.5], opt_rows), _sp(3))
+                    opt_rows.append([{'paragraphs':[_p(lbl,bold=True,size_pt=10,color_hex='C00000',font='Roboto')],'valign':'top'},{'paragraphs':[_p(fee,size_pt=10,align='center')],'valign':'center'}])
+            if len(opt_rows)>1: add(_make_table([5.7,1.5], opt_rows), _sp(1))
             add(_ital("*For every new director\u2019s professional tax no., there shall be additional cost of $100 per director"))
-            add(_ital('*Digital signature certificate (DSC) token can be obtained at a cost of USD 200 per applicant.'), _sp(5))
+            add(_ital('*Digital signature certificate (DSC) token can be obtained at a cost of USD 200 per applicant.'), _sp(2))
             add(*_note_block(['All fees quoted above exclude 18% GST.','Professional fees exclude all out-of-pocket expenses like filing fees, courier expenses, apostilling & notary cost to any authorities/departments, statutory fees payable to Registrar of companies (ROC) towards incorporation etc. other than those mentioned above.','Advance of 100% of the above selected option.']))
             add(*_hourly(), _sp(4))
             add(_h2('Nominee Director and Registered Office Address Service'), _sp(2))
@@ -2011,10 +2011,10 @@ def generate_proposal_word():
             nom_rows = [h_row]
             if data.get('includeRegOffice')=='on':
                 fee = format_currency(data.get('registeredOfficeFee','0')) or '300'
-                nom_rows.append([{'paragraphs':[_p('Registered Office Service',bold=True,size_pt=9,color_hex='C00000',font='Roboto'),_body('A refundable Security deposit @USD 2500 applies**. Refundable upon cessation of Registered office service.')],'valign':'top'},{'paragraphs':[_p(fee,size_pt=9,align='center')],'valign':'center'}])
+                nom_rows.append([{'paragraphs':[_p('Registered Office Service',bold=True,size_pt=10,color_hex='C00000',font='Roboto'),_body('A refundable Security deposit @USD 2500 applies**. Refundable upon cessation of Registered office service.')],'valign':'top'},{'paragraphs':[_p(fee,size_pt=10,align='center')],'valign':'center'}])
             if data.get('includeNomineeDir')=='on':
                 fee = format_currency(data.get('nomineeDirectorFee','0')) or '350'
-                nom_rows.append([{'paragraphs':[_p('Nominee Director Service',bold=True,size_pt=9,color_hex='C00000',font='Roboto'),_body('A refundable Security deposit per nominee @USD 5000 applies*. Refundable upon cessation of Nominee Director Service'),_body("Director\u2019s fee for attending a physical or recorded or live board meeting @USD300 per director per board meeting"),_body("Every nominee director needs to be protected under a director\u2019s indemnity policy. Premium of indemnity bond to be charged on actual basis."),_body('To ensure the removal of a nominee director from registrations ***with various authorities where required, InCorp must be notified at least three months in advance.')],'valign':'top'},{'paragraphs':[_p(fee,size_pt=9,align='center')],'valign':'center'}])
+                nom_rows.append([{'paragraphs':[_p('Nominee Director Service',bold=True,size_pt=10,color_hex='C00000',font='Roboto'),_body('A refundable Security deposit per nominee @USD 5000 applies*. Refundable upon cessation of Nominee Director Service'),_body("Director\u2019s fee for attending a physical or recorded or live board meeting @USD300 per director per board meeting"),_body("Every nominee director needs to be protected under a director\u2019s indemnity policy. Premium of indemnity bond to be charged on actual basis."),_body('To ensure the removal of a nominee director from registrations ***with various authorities where required, InCorp must be notified at least three months in advance.')],'valign':'top'},{'paragraphs':[_p(fee,size_pt=10,align='center')],'valign':'center'}])
             if len(nom_rows)>1:
                 add(_make_table([5.7,1.5], nom_rows), _sp(2))
                 add(_ital("*Failure to engage InCorp's services for regular compliances of the company post the setup such as tax, secretarial, FEMA etc. shall result in forfeiture of the security deposit received against nominee director and registered office services."), _sp(1))
@@ -2109,12 +2109,12 @@ def generate_proposal_word():
                      count = label_counts[svc_label]
                      if count > 1:
                         svc_cell = {
-                                'paragraphs': [_p(svc_label, bold=True, size_pt=9, color_hex='C00000', font='Roboto', align='center')],
+                                'paragraphs': [_p(svc_label, bold=True, size_pt=10, color_hex='C00000', font='Roboto', align='center')],
                                 'valign': 'center',
                                 'vspan': 'start'}
                      else:   
                          svc_cell = {
-                                'paragraphs': [_p(svc_label, bold=True, size_pt=9, color_hex='C00000', font='Roboto', align='center')],
+                                'paragraphs': [_p(svc_label, bold=True, size_pt=10, color_hex='C00000', font='Roboto', align='center')],
                                 'valign': 'center'
                             }   
                   else:
@@ -2131,19 +2131,19 @@ def generate_proposal_word():
                     }
                 acc_rows.append([
                     svc_cell,
-                        {'paragraphs':[_p(freq,size_pt=9,align='center')],'valign':'center'},
+                        {'paragraphs':[_p(freq,size_pt=10,align='center')],'valign':'center'},
                         {'paragraphs':note_paras,'valign':'top'},
-                        {'paragraphs':[_p(fee_display,size_pt=9,align='center')],'valign':'center'},
+                        {'paragraphs':[_p(fee_display,size_pt=10,align='center')],'valign':'center'},
                     ])
             acc_rows.append([
-    {'paragraphs':[_p('Total costs (excluding one time costs)',bold=True,size_pt=9,align='center')],'valign':'center','span':3},
-    {'paragraphs':[_p(f'{int(ta):,} per annum',bold=True,size_pt=9,align='center')],'valign':'center'},
+    {'paragraphs':[_p('Total costs (excluding one time costs)',bold=True,size_pt=10,align='center')],'valign':'center','span':3},
+    {'paragraphs':[_p(f'{int(ta):,} per annum',bold=True,size_pt=10,align='center')],'valign':'center'},
 ])
             acc_rows.append([
-    {'paragraphs':[_p('One-time costs',bold=True,size_pt=9,align='center')],'valign':'center','span':3},
-    {'paragraphs':[_p(f'{int(to):,} one time',bold=True,size_pt=9,align='center')],'valign':'center'},
+    {'paragraphs':[_p('One-time costs',bold=True,size_pt=10,align='center')],'valign':'center','span':3},
+    {'paragraphs':[_p(f'{int(to):,} one time',bold=True,size_pt=10,align='center')],'valign':'center'},
 ])
-            if len(acc_rows)>1: add(_make_table([1.3,1.3,3.2,1.4], acc_rows), _sp(3))
+            if len(acc_rows)>1: add(_make_table([1.3,1.3,3.2,1.4], acc_rows), _sp(2))
             add(_ital('*The above quotation fee is for approx.20 transactions per month'), _sp(2))
             add(_ital("^InCorp\u2019s empanelled audit partners can offer the services of statutory audit (applicable to all), tax audit (applicable on if Turnover exceeds Rs. 100 Mn) and GST audit services (If Turnover exceeds Rs. 50 Mn) and transfer pricing reporting & audit (applicable for companies having intercompany transactions). The quotes for the same can be provided separately."), _sp(2))
             add(_ital("^Audit partner firms (Jayesh Sanghrajka & Associates, Manish Modi & Associates) shall be able to assist on that front. The estimated statutory fee quote for the first FY shall be between USD 2500 TO USD 3500. The auditor shall be able to provide the final fee quote closer to year end March 2026 depending on the nature and complexity of transactions."), _sp(2))
@@ -2159,12 +2159,12 @@ def generate_proposal_word():
                 fee = (format_currency(data.get('benchmarkingFee','0')) or '1500') + ' per business activity'
                 try: tp_total += int(fee.split()[0].replace(',',''))
                 except: pass
-                tp_rows.append([{'paragraphs':[_p('Benchmarking',bold=True,size_pt=9,color_hex='C00000',font='Roboto')],'valign':'center'},{'paragraphs':[_p('One-time',size_pt=9,align='center')],'valign':'center'},{'paragraphs':[_body('1. Assistance in conducting Functional, Asset and Risk Analysis of the proposed transaction.'),_body("2. Assisting in arriving at the arm\u2019s length price or margin range."),_body('3. Preparation of final benchmarking report*.')],'valign':'top'},{'paragraphs':[_p(fee,size_pt=9,align='center')],'valign':'center'}])
+                tp_rows.append([{'paragraphs':[_p('Benchmarking',bold=True,size_pt=10,color_hex='C00000',font='Roboto')],'valign':'center'},{'paragraphs':[_p('One-time',size_pt=10,align='center')],'valign':'center'},{'paragraphs':[_body('1. Assistance in conducting Functional, Asset and Risk Analysis of the proposed transaction.'),_body("2. Assisting in arriving at the arm\u2019s length price or margin range."),_body('3. Preparation of final benchmarking report*.')],'valign':'top'},{'paragraphs':[_p(fee,size_pt=10,align='center')],'valign':'center'}])
             if data.get('includeIntercompany')=='on':
                 fee = format_currency(data.get('intercompanyAgreementFee','0')) or '1500'
                 try: tp_total += int(str(fee).replace(',',''))
                 except: pass
-                tp_rows.append([{'paragraphs':[_p('Inter-company agreement',bold=True,size_pt=9,color_hex='C00000',font='Roboto')],'valign':'center'},{'paragraphs':[_p('One-time',size_pt=9,align='center')],'valign':'center'},{'paragraphs':[_body('Drafting and finalizing of Inter-company service agreement covering detailed description of service, Invoicing period, Receivable cycle, withholding, ownership rights, effective date of agreement, indemnity etc. in compliance with Transfer Pricing regulations.')],'valign':'top'},{'paragraphs':[_p(fee,size_pt=9,align='center')],'valign':'center'}])
+                tp_rows.append([{'paragraphs':[_p('Inter-company agreement',bold=True,size_pt=10,color_hex='C00000',font='Roboto')],'valign':'center'},{'paragraphs':[_p('One-time',size_pt=10,align='center')],'valign':'center'},{'paragraphs':[_body('Drafting and finalizing of Inter-company service agreement covering detailed description of service, Invoicing period, Receivable cycle, withholding, ownership rights, effective date of agreement, indemnity etc. in compliance with Transfer Pricing regulations.')],'valign':'top'},{'paragraphs':[_p(fee,size_pt=10,align='center')],'valign':'center'}])
             tp_rows.append([
     {'paragraphs':[_p('Total one-time costs',bold=True,size_pt=10,align='center')],'valign':'center','span':3},
     {'paragraphs':[_p(f'{tp_total:,}',bold=True,size_pt=10,align='center')],'valign':'center'},
