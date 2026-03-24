@@ -47,6 +47,11 @@ except Exception as e:
         print("⚠️ Using regular as italic fallback for MicrosoftSansSerif")
     except:
         pass
+try:
+    pdfmetrics.registerFont(TTFont('Roboto-Medium', os.path.join(BASE_DIR, 'Roboto-Medium.ttf')))
+    print("✅ Roboto Medium registered")
+except Exception as e:
+    print(f"⚠️ Font registration failed: {e}")
 
 try:
     pdfmetrics.registerFont(TTFont('Roboto', os.path.join(BASE_DIR, 'Roboto-Regular.ttf')))
@@ -82,7 +87,7 @@ try:
         normal='Roboto',
         bold='Roboto-Bold',
         italic='Roboto-Italic',
-       
+       fontName='Roboto-Medium',
         boldItalic='Roboto-BoldItalic')
     print("✅ Roboto font family registered")
 except Exception as e:
@@ -139,7 +144,7 @@ class CoverPageWithCompany(Flowable):
         
         page_width = letter[0]  # Use actual page width
         text_width = c.stringWidth(self.company_name, "Roboto-Bold", 18)
-        x_position = (page_width - text_width) / 2  # Center on full page
+        x_position = page_width - text_width - 1.5*inch   # Center on full page
         y_position = 1*inch  # Match the red banner position
         
         c.drawString(x_position, y_position, self.company_name)
@@ -334,6 +339,23 @@ def build_pdf_elements(data):
     firstLineIndent=-10,  # ← bullet 10pt peeche jaayega (hanging indent)
     rightIndent=0,
 )
+    freq_style = ParagraphStyle(
+    'FreqStyle',
+    parent=styles['Normal'],
+    fontName='MicrosoftSansSerif',
+    fontSize=10,
+    alignment=TA_CENTER,
+    textColor=colors.HexColor('#777777')
+)
+
+    fee_style = ParagraphStyle( 
+    'FeeStyle',
+    parent=styles['Normal'],
+    fontName='MicrosoftSansSerif',
+    fontSize=10,
+    alignment=TA_CENTER,
+    textColor=colors.HexColor('#777777')
+)
      # Table ke andar use karne ke liye
     table_bullet_style = ParagraphStyle(
     'TableBulletStyle',
@@ -360,7 +382,7 @@ def build_pdf_elements(data):
         parent=styles['Normal'],
         fontSize=11,
         leading=11,
-        fontName='Roboto-Italic',
+        fontName='Roboto-BoldItalic',
         textColor=colors.HexColor("#000000"),
         spaceBefore=2,
         spaceAfter=2
@@ -377,7 +399,36 @@ def build_pdf_elements(data):
         spaceAfter=2,
         alignment=TA_JUSTIFY
     )
-    
+    def tc_head(text):
+          """Red bold heading inside table cell - font size 10"""
+          return f'<font color="#C00000" face="Roboto-Bold" size="10"><b>{text}</b></font>'
+
+    def tc_grey(text):
+          """Grey body text inside table cell"""
+          return f'<font color="#777777">{text}</font>'
+
+    def tc_cell(heading, body_lines=None, style=None, heading_underline=False,heading_black=False):
+         """
+         Complete table cell paragraph:
+          heading     = red bold heading text
+          body_lines  = list of strings OR single string (shown grey below heading)
+          style       = ParagraphStyle to use (default: normal_style)
+          heading_underline  = True karo agar heading underline chahiye
+         """
+         s = style or normal_style
+         color = '#555555' if heading_black else ('#555555' if heading_underline else '#C00000')
+         if heading_underline:
+           content = f'<font color="{color}" face="Roboto-Bold" size="10"><b><u>{heading}</u></b></font>'
+         else:
+            content = f'<font color="{color}" face="Roboto-Bold" size="10"><b>{heading}</b></font>'
+
+        
+
+         if body_lines:
+            if isinstance(body_lines, str):
+               body_lines = [body_lines]
+            content += '<br/>' + '<br/>'.join([f'<font color="#777777" size="9">{line}</font>' for line in body_lines])
+         return Paragraph(content, s)
     # ==================== PAGE 1 - COVER PAGE ====================
     cover_image_path = None
     for ext in ['cover_image.png', 'cover_image.jpg', 'cover_image.jpeg']:
@@ -516,18 +567,14 @@ Yours Sincerely and on behalf of In.Corp,<br/><br/><br/>"""
             handover_freq = data.get('handoverFrequency', 'One-time')
             handover_data.append([
                 
-        Paragraph(
-        '<font color="#C00000" face="Roboto-Bold"><b>Handover from erstwhile service provider '
-        'of various records under laws as mentioned below. This process does not entail '
-        'conducting a due diligence.</b></font>'
-        '<font size="1"> </font><br/>'  # small gap
-        '\u00a0\u00a0\u00a0\u2022 GST laws/regulations<br/>'
-        '\u00a0\u00a0\u00a0\u2022 Income Tax Act, 1961<br/>'
-        '\u00a0\u00a0\u00a0\u2022 Company\'s Act, 2013<br/>'
-        '\u00a0\u00a0\u00a0\u2022 Foreign Exchange Rules &amp; Regulations',
-        normal_style),
-   Paragraph(handover_freq, ParagraphStyle('freq', fontName='MicrosoftSansSerif', fontSize=10, alignment=TA_CENTER)),
-Paragraph(handover_fee, ParagraphStyle('fee', fontName='MicrosoftSansSerif', fontSize=10, alignment=TA_CENTER))])
+        tc_cell(
+    'Handover from erstwhile service provi  der of various records under laws as mentioned below. This process does not entail conducting a due diligence.',
+    ['• GST laws/regulations', '• Income Tax Act, 1961', "• Company's Act, 2013", '• Foreign Exchange Rules & Regulations'],style=bullet_style
+),
+   Paragraph(handover_freq, freq_style
+),
+Paragraph(handover_fee, fee_style
+)])
 
         if data.get('includeDueDiligence') == 'on':
             dd_fee = format_currency(data.get('dueDiligenceFee', '0'))
@@ -537,13 +584,12 @@ Paragraph(handover_fee, ParagraphStyle('fee', fontName='MicrosoftSansSerif', fon
                 dd_fee = dd_fee + ' per year'
             dd_freq = data.get('ddFrequency', 'One-time')
             handover_data.append([
-                Paragraph("""<font color="#C00000" face="Roboto-Bold">Basic due diligence from perspective of*–</font><br/>
-• Company's Act, 2013<br/>
-• Income Tax Act, 1961<br/>
-• Goods and Service Tax Act, 2017<br/>
-• Foreign Exchange Management Act, 1999""", bullet_style),
-                Paragraph(dd_freq, ParagraphStyle('freq2', fontName='MicrosoftSansSerif', fontSize=10, alignment=TA_CENTER)),
-Paragraph(dd_fee, ParagraphStyle('fee2', fontName='MicrosoftSansSerif', fontSize=10, alignment=TA_CENTER))
+                tc_cell(
+    'Basic due diligence from perspective of*–',
+    ["• Company's Act, 2013", '• Income Tax Act, 1961', '• Goods and Service Tax Act, 2017', '• Foreign Exchange Management Act, 1999'],
+    style=bullet_style),
+                Paragraph(dd_freq, freq_style),
+Paragraph(dd_fee, fee_style)
             ])
 
         if len(handover_data) > 1:
@@ -551,8 +597,8 @@ Paragraph(dd_fee, ParagraphStyle('fee2', fontName='MicrosoftSansSerif', fontSize
             handover_table.setStyle(TableStyle([
                 ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor("#FFFFFF")),
                 ('TEXTCOLOR', (0, 0), (-1, 0), colors.black),
-                ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-                ('FONTSIZE', (0, 0), (2, 0), 10),
+                ('FONTNAME', (0, 0), (-1, 0), 'Roboto-Medium'),
+                ('FONTSIZE', (0, 0), (2, 0), 12 ),
                 ('FONTSIZE', (0, 1), (-1, -1), 9),
                 ('ALIGN', (1, 0), (2, -1), 'CENTRE'),
                 ('GRID', (0, 1), (-1, -1), 0.5, colors.black),
@@ -600,11 +646,11 @@ Paragraph(dd_fee, ParagraphStyle('fee2', fontName='MicrosoftSansSerif', fontSize
             if not inc_fee:
                 inc_fee = '1500'
             inc_data.append([
-                Paragraph("""<font color="#C00000" face="Roboto-Bold"><b>Incorporation</b></font><br/>
-• PAN of the company included<br/>
-• TAN of the company included<br/>
-• Employees' Provident Fund and Miscellaneous Provision Act, Employees' State Insurance Corporation Act included""", bullet_style),
-               Paragraph(inc_fee, ParagraphStyle('incfee', fontName='MicrosoftSansSerif', fontSize=10, alignment=TA_CENTER))
+                tc_cell(
+    'Incorporation',
+    ['• PAN of the company included', '• TAN of the company included', "• Employees' Provident Fund and Miscellaneous Provision Act included"],
+    style=bullet_style
+),Paragraph(inc_fee, fee_style)
             ])
 
         if data.get('includeGST') == 'on':
@@ -612,10 +658,12 @@ Paragraph(dd_fee, ParagraphStyle('fee2', fontName='MicrosoftSansSerif', fontSize
             if not gst_fee:
                 gst_fee = '350'
             inc_data.append([
-                Paragraph("""<font color="#C00000" face="Roboto-Bold"><b>Goods & Service Tax (GST)</b></font><br/>
-Registration of single location with GST authorities.<br/><br/>
-<font face="Roboto-Italic">Registration of every additional location with the GST authorities shall cost USD 100</font>""", normal_style),
-                 Paragraph(gst_fee, ParagraphStyle('incfee', fontName='MicrosoftSansSerif', fontSize=10, alignment=TA_CENTER))
+                tc_cell(
+    'Goods & Service Tax (GST)',
+    ['Registration of single location with GST authorities.', '<font face="Roboto-Italic">Registration of every additional location with the GST authorities shall cost USD 100</font>']
+),
+
+                 Paragraph(gst_fee, fee_style)
             ])
 
         if data.get('includeFCGPR') == 'on':
@@ -625,8 +673,10 @@ Registration of single location with GST authorities.<br/><br/>
             else:
                 fcgpr_fee = fcgpr_fee + ' per applicant'
             inc_data.append([
-                Paragraph("""<font color="#C00000" face="Roboto-Bold"><b>FCGPR Filing with Reserve Bank of India</b></font><br/>
-Filing of Forms and declaration with RBI as required under FEMA""", normal_style),
+                tc_cell(
+    'FCGPR Filing with Reserve Bank of India',
+    ['Filing of Forms and declaration with RBI as required under FEMA']
+),
                 Paragraph(fcgpr_fee, ParagraphStyle('fcgpr_fee', fontName='MicrosoftSansSerif', fontSize=10, alignment=TA_CENTER))
             ])
 
@@ -635,12 +685,11 @@ Filing of Forms and declaration with RBI as required under FEMA""", normal_style
             if not roc_fee:
                 roc_fee = '500'
             inc_data.append([
-                Paragraph("""<font color="#C00000" face="Roboto-Bold"><b>Statutory Compliances with Registrar of Companies under Companies Act:</b></font><br/>
-• Drafting of first board meeting documents<br/>
-• Guidance on capital infusion in bank account<br/>
-• File form with Ministry for commencement of business (COC)<br/>
-• Preparation of statutory shareholders register""", bullet_style),
-                Paragraph(roc_fee, ParagraphStyle('rocfee', fontName='MicrosoftSansSerif', fontSize=10, alignment=TA_CENTER))
+                tc_cell(
+    'Statutory Compliances with Registrar of Companies under Companies Act:',
+    ['• Drafting of first board meeting documents', '• Guidance on capital infusion in bank account', '• File form with Ministry for commencement of business (COC)', '• Preparation of statutory shareholders register'],
+    style=bullet_style),
+                Paragraph(roc_fee, fee_style)
             ])
 
         if len(inc_data) > 1:
@@ -648,8 +697,8 @@ Filing of Forms and declaration with RBI as required under FEMA""", normal_style
             inc_table.setStyle(TableStyle([
                 ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor("#FFFFFF")),
                 ('TEXTCOLOR', (0, 0), (-1, 0), colors.black),
-                 ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-            ('FONTSIZE', (0, 0), (1, 0), 10),
+                 ('FONTNAME', (0, 0), (-1, 0), 'Roboto-Medium'),
+            ('FONTSIZE', (0, 0), (1, 0), 12),
             ('FONTSIZE', (0, 1), (-1, -1), 8),
             ('ALIGN', (1, 0), (1, -1), 'CENTER'),       # fee col - horizontal center
             ('VALIGN', (0, 0), (-1, -1), 'TOP'),
@@ -692,18 +741,28 @@ Filing of Forms and declaration with RBI as required under FEMA""", normal_style
         elements.append(Spacer(1, 3))
 
         opt_data = [['Services', 'Fees (In USD)']]
+       
         optional_services = [
-            ('includeIEC', 'iecFee','200', '<font color="#C00000"face="Roboto-Bold">Import Export Code (IEC Code)</font>'),
-            ('includePT', 'ptFee', '200',
- '<font color="#C00000" face="Roboto-Bold">Profession Tax (PT)</font><br/>'
- '\u2022 Payments and return filing for company, its employees until the company\'s certificate of commencement is obtained'),
-            ('includeBEN', 'benFee','250', '<font color="#C00000" face="Roboto-Bold">Submission of for Significant Beneficial Ownership via form BEN-2</font>'),
-            ('includeMGT', 'mgtFee', '250','<font color="#C00000" face="Roboto-Bold">Filing of requisite forms with Registrar of Companies (ROC) with respect to beneficial and nominee shareholding (via Form MGT 4, MGT 5, MGT 6)</font>'),
-            ('includePAN', 'panCardFee','300', '<font color="#C00000" face="Roboto-Bold">Physical PAN Card of the company</font>'),
-            ('includeTrademark', 'trademarkFee','350', '<font color="#C00000" face="Roboto-Bold">Trademark Registration (exclusive of disbursement fees)</font>'),
-            ('includeForeignPAN', 'foreignPanFee','200 per director', '<font color="#C00000" face="Roboto-Bold">PAN for foreign director</font>'),
-            ('includeBankAssist', 'bankAssistFee','250', '<font color="#C00000" face="Roboto-Bold">Assistance in opening of bank account</font>')
-        ]
+    ('includeIEC', 'iecFee', '200',
+        tc_cell('Import Export Code (IEC Code)')),
+    ('includePT', 'ptFee', '200',
+        tc_cell('Profession Tax (PT)',
+            ['\u2022 Payments and return filing for company, its employees until the company\'s certificate of commencement is obtained'],
+            style=bullet_style)),
+    ('includeBEN', 'benFee', '250',
+        tc_cell('Submission of for Significant Beneficial Ownership via form BEN-2')),
+    ('includeMGT', 'mgtFee', '250',
+        tc_cell('Filing of requisite forms with Registrar of Companies (ROC) with respect to beneficial and nominee shareholding (via Form MGT 4, MGT 5, MGT 6)')),
+    ('includePAN', 'panCardFee', '300',
+        tc_cell('Physical PAN Card of the company')),
+    ('includeTrademark', 'trademarkFee', '350',
+        tc_cell('Trademark Registration (exclusive of disbursement fees)')),
+    ('includeForeignPAN', 'foreignPanFee', '200 per director',
+        tc_cell('PAN for foreign director')),
+    ('includeBankAssist', 'bankAssistFee', '250',
+        tc_cell('Assistance in opening of bank account')),
+]
+        
         opt_style = ParagraphStyle('OptStyle', parent=normal_style, leftIndent=10, firstLineIndent=-10, rightIndent=0)
         per_director_keys = {'foreignPanFee'}
         for checkbox, fee_key, default_fee, label in optional_services:
@@ -715,15 +774,15 @@ Filing of Forms and declaration with RBI as required under FEMA""", normal_style
                     # Append suffix if this fee type needs it
                     if fee_key in per_director_keys:
                         fee = fee + ' per director'
-                opt_data.append([Paragraph(label, opt_style), Paragraph(fee, ParagraphStyle('optfee', fontName='MicrosoftSansSerif', fontSize=10, alignment=TA_CENTER))])
+                opt_data.append([label, Paragraph(fee, fee_style)])
 
         if len(opt_data) > 1:
             opt_table = Table(opt_data, colWidths=[5.7*inch, 1.5*inch])
             opt_table.setStyle(TableStyle([
                 ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor("#FFFFFF")),
                 ('TEXTCOLOR', (0, 0), (-1, 0), colors.black),
-                ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-                ('FONTSIZE', (0, 0), (1, 0), 10),
+                ('FONTNAME', (0, 0), (-1, 0), 'Roboto-Medium'),
+                ('FONTSIZE', (0, 0), (1, 0), 12),
                 ('FONTSIZE', (0, 1), (-1, -1), 8),
                 ('ALIGN', (1, 0), (1, -1), 'CENTER'),
                 ('GRID', (0, 1), (-1, -1), 0.5, colors.black),
@@ -768,9 +827,11 @@ Filing of Forms and declaration with RBI as required under FEMA""", normal_style
             if not reg_office_fee:
                 reg_office_fee = '300'
             nominee_data.append([
-                Paragraph("""<font color="#C00000" face="Roboto-Bold"><b>Registered Office Service</b></font><br/><br/>
-A refundable Security deposit @USD 2500 applies**. Refundable upon cessation of Registered office service.""", normal_style),
-                Paragraph(reg_office_fee, ParagraphStyle('nf1', fontName='MicrosoftSansSerif', fontSize=10, alignment=TA_CENTER, leading=11))
+               tc_cell(
+    'Registered Office Service',
+    ['A refundable Security deposit @USD 2500 applies**. Refundable upon cessation of Registered office service.']
+),
+                Paragraph(reg_office_fee, fee_style)
             ])
 
         if data.get('includeNomineeDir') == 'on':
@@ -784,7 +845,7 @@ Director's fee for attending a physical or recorded or live board meeting @USD30
 Every nominee director needs to be protected under a director's indemnity policy. Premium of indemnity bond to be charged on actual basis. InCorp shall enter into a separate nominee directors' agreement at the time of engagement.<br/><br/>
 To ensure the removal of a nominee director from registrations ***with various authorities where required, InCorp must be notified at least three months in advance. Additionally, professional fees for this service will continue to be charged until the removal is reflected by all relevant authorities as well as Bank & new director is appointed in his place.
 """, normal_style),
-                    Paragraph(nom_dir_fee, ParagraphStyle('nf2', fontName='MicrosoftSansSerif', fontSize=10, alignment=TA_CENTER, leading=11))
+                    Paragraph(nom_dir_fee,fee_style)
             ])
 
         if len(nominee_data) > 1:
@@ -792,8 +853,8 @@ To ensure the removal of a nominee director from registrations ***with various a
             nominee_table.setStyle(TableStyle([
                 ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor("#FFFCFC")),
     ('TEXTCOLOR', (0, 0), (-1, 0), colors.black),
-    ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-    ('FONTSIZE', (0, 0), (1, 0), 10),
+    ('FONTNAME', (0, 0), (-1, 0), 'Roboto-Medium'),
+    ('FONTSIZE', (0, 0), (1, 0), 12),
     ('FONTSIZE', (0, 1), (-1, -1), 8),
     ('ALIGN', (1, 0), (1, -1), 'CENTER'),
     ('VALIGN', (0, 0), (-1, -1), 'TOP'),
@@ -896,10 +957,14 @@ To ensure the removal of a nominee director from registrations ***with various a
         add_to_totals(freq, advance_tax_fee)
         direct_tax_entries.append([
             '',
-             Paragraph(freq, ParagraphStyle('freq', fontName='MicrosoftSansSerif', fontSize=10, alignment=TA_CENTER)),  # ✅ Wrap frequency
+             Paragraph(freq, freq_style
+),  # ✅ Wrap frequency
 
-            Paragraph("<u>1) Advance tax Compliances</u><br/> • Quarterly calculations and payment", bullet_style),
-            Paragraph(advance_tax_fee + ' per month', ParagraphStyle('fee', fontName='MicrosoftSansSerif', fontSize=10, alignment=TA_CENTER))  # ✅ Wrap fee
+tc_cell('1) Advance tax Compliances',
+    ['\u2022 Quarterly calculations and payment'],
+    style=bullet_style, heading_underline=True)  ,
+                        Paragraph(advance_tax_fee + ' per month', fee_style
+)  # ✅ Wrap fee
         ])
     
     if data.get('includeTDS') == 'on':
@@ -910,13 +975,16 @@ To ensure the removal of a nominee director from registrations ***with various a
         add_to_totals(freq, tds_fee)
         direct_tax_entries.append([
             '',
-                Paragraph(freq, ParagraphStyle('freq', fontName='MicrosoftSansSerif', fontSize=10, alignment=TA_CENTER)),  # ✅ Wrap frequency
+                Paragraph(freq, freq_style
+),  # ✅ Wrap frequency
 
-            Paragraph("""<u>2) TDS compliances:</u><br/>
-• Calculation and Payment of TDS<br/>
-• Filing of TDS Returns<br/><br/>
-<font face="Roboto-Italic">(The above excludes cost of revisions of TDS returns. The fee quote for the same shall be shared if applicable)</font>""", bullet_style),
-                        Paragraph(tds_fee + ' per month', ParagraphStyle('fee', fontName='MicrosoftSansSerif', fontSize=10, alignment=TA_CENTER))  # ✅ Wrap fee
+            tc_cell('2) TDS compliances:',
+    ['\u2022 Calculation and Payment of TDS',
+     '\u2022 Filing of TDS Returns',
+     '<font face="Roboto-Italic">(The above excludes cost of revisions of TDS returns. The fee quote for the same shall be shared if applicable)</font>'],
+    style=bullet_style, heading_underline=True),
+                        Paragraph(tds_fee + ' per month', fee_style
+)  # ✅ Wrap fee
 
         ])
     
@@ -930,12 +998,15 @@ To ensure the removal of a nominee director from registrations ***with various a
             add_to_totals(freq, income_tax_fee)
             direct_tax_entries.append([
                 '',
-                                Paragraph(freq, ParagraphStyle('freq', fontName='MicrosoftSansSerif', fontSize=10, alignment=TA_CENTER)),  # ✅ Wrap frequency
+                                Paragraph(freq, freq_style
+),  # ✅ Wrap frequency
 
-                Paragraph("""<u>3) Annual Income tax return</u><br/>
-    Computation and filing of Annual Income tax Return<br/><br/>
-    4) Statement of Financial Transactions (SFT) – Basic Reporting""", normal_style),
-                 Paragraph(income_tax_fee + ' per month', ParagraphStyle('fee', fontName='MicrosoftSansSerif', fontSize=10, alignment=TA_CENTER))  # ✅ Wrap fee
+                tc_cell('3) Annual Income tax return',
+    ['Computation and filing of Annual Income tax Return',
+     '4) Statement of Financial Transactions (SFT) \u2013 Basic Reporting'],
+    heading_underline=True),
+                 Paragraph(income_tax_fee + ' per month', fee_style
+)  # ✅ Wrap fee
             ])
        
 
@@ -959,13 +1030,16 @@ To ensure the removal of a nominee director from registrations ***with various a
         add_to_totals(freq, gst_fee)
         all_sections_data.append([
             Paragraph('<font color="#C00000" face="Roboto-Bold"><b>Indirect tax compliances</b></font>', section_header_style),
-                            Paragraph(freq, ParagraphStyle('freq', fontName='MicrosoftSansSerif', fontSize=10, alignment=TA_CENTER)),  # ✅ Wrap frequency
+                            Paragraph(freq, freq_style
+),  # ✅ Wrap frequency
 
-            Paragraph("""<u>1) GST Compliances:</u><br/>
-• Calculations and payment of GST<br/>
-• Filing of monthly GST Returns<br/><br/>
-<font face="Roboto-Italic">(The above excludes cost of revisions of GST returns. The fee quote for the same shall be shared if applicable)</font>""", bullet_style),
-             Paragraph(gst_fee + ' per month', ParagraphStyle('fee', fontName='MicrosoftSansSerif', fontSize=10, alignment=TA_CENTER))  # ✅ Wrap fee
+            tc_cell('1) GST Compliances:',
+    ['\u2022 Calculations and payment of GST',
+     '\u2022 Filing of monthly GST Returns',
+     '<font face="Roboto-Italic">(The above excludes cost of revisions of GST returns. The fee quote for the same shall be shared if applicable)</font>'],
+    style=bullet_style, heading_underline=True),
+             Paragraph(gst_fee + ' per month', fee_style
+)  # ✅ Wrap fee
         ])
     
     # COMPANY LAW
@@ -977,11 +1051,14 @@ To ensure the removal of a nominee director from registrations ***with various a
         add_to_totals(freq, company_law_fee)
         all_sections_data.append([
             Paragraph('<font color="#C00000" face="Roboto-Bold"><b>Company Law</b></font>', normal_style),
-                            Paragraph(freq, ParagraphStyle('freq', fontName='MicrosoftSansSerif', fontSize=10, alignment=TA_CENTER)),  # ✅ Wrap frequency
+                            Paragraph(freq, freq_style
+),  # ✅ Wrap frequency
 
-            Paragraph("""Company Law Compliances (Scope as per Annexure 1)<br/>
-Assistance on conduction of virtual board meeting – USD 150 per board meeting""",normal_style),
-             Paragraph(company_law_fee + ' per month', ParagraphStyle('fee', fontName='MicrosoftSansSerif', fontSize=10, alignment=TA_CENTER))  # ✅ Wrap fee
+            tc_cell('Company Law Compliances (Scope as per Annexure 1)', [
+    'Assistance on conduction of virtual board meeting \u2013 USD 150 per board meeting',
+],heading_black=True),
+             Paragraph(company_law_fee + ' per month', fee_style
+)  # ✅ Wrap fee
         ])
     
     # FOREIGN EXCHANGE
@@ -994,10 +1071,12 @@ Assistance on conduction of virtual board meeting – USD 150 per board meeting"
         add_to_totals(freq, rbi_filing_fee)
         foreign_exchange_entries.append([
             '',
-                            Paragraph(freq, ParagraphStyle('freq', fontName='MicrosoftSansSerif', fontSize=10, alignment=TA_CENTER)),  # ✅ Wrap frequency
+                            Paragraph(freq, freq_style
+),  # ✅ Wrap frequency
 
-            Paragraph("Annual Filings with Reserve bank of India", normal_style),
-            Paragraph(rbi_filing_fee + ' per month', ParagraphStyle('fee', fontName='MicrosoftSansSerif', fontSize=10, alignment=TA_CENTER))  # ✅ Wrap fee
+            tc_cell('Annual Master Filing Form 3CEAA Part A (Basic Reporting)',heading_black=True),
+            Paragraph(rbi_filing_fee + ' per month', fee_style
+)  # ✅ Wrap fee
         ])
     
     if data.get('includeMasterFiling') == 'on':
@@ -1008,10 +1087,12 @@ Assistance on conduction of virtual board meeting – USD 150 per board meeting"
         add_to_totals(freq, master_filing_fee)
         foreign_exchange_entries.append([
             '',
-                           Paragraph(freq, ParagraphStyle('freq', fontName='MicrosoftSansSerif', fontSize=10, alignment=TA_CENTER)),  # ✅ Wrap frequency
+                           Paragraph(freq, freq_style
+),  # ✅ Wrap frequency
 
-            Paragraph("Annual Master Filing Form 3CEAA Part A (Basic Reporting)", normal_style),
-             Paragraph(master_filing_fee + ' per month', ParagraphStyle('fee', fontName='MicrosoftSansSerif', fontSize=10, alignment=TA_CENTER))  # ✅ Wrap fee
+           Paragraph('<font color="#777777" size="9">Annual Master Filing Form 3CEAA Part A (Basic Reporting)</font>', normal_style),
+             Paragraph(master_filing_fee + ' per month', fee_style
+)  # ✅ Wrap fee
         ])
     
     if foreign_exchange_entries:
@@ -1034,13 +1115,16 @@ Assistance on conduction of virtual board meeting – USD 150 per board meeting"
         add_to_totals(freq, acct_setup_fee)
         accounting_entries.append([
             '',
-                            Paragraph(freq, ParagraphStyle('freq', fontName='MicrosoftSansSerif', fontSize=10, alignment=TA_CENTER)),  # ✅ Wrap frequency
+                            Paragraph(freq, freq_style
+),  # ✅ Wrap frequency
 
-            Paragraph("""<u>Setup of accounting software</u><br/>
-• Liaison with the software expert for the setup<br/>
-• Ensure due configuration of the software with applicable laws<br/>
-• Short tutorial on guidance with respect to use of accounting software""", bullet_style),
-             Paragraph(acct_setup_fee + ' per month', ParagraphStyle('fee', fontName='MicrosoftSansSerif', fontSize=10, alignment=TA_CENTER))  # ✅ Wrap fee
+            tc_cell('Setup of accounting software',
+    ['\u2022 Liaison with the software expert for the setup',
+     '\u2022 Ensure due configuration of the software with applicable laws',
+     '\u2022 Short tutorial on guidance with respect to use of accounting software'],
+    style=bullet_style, heading_underline=True),
+             Paragraph(acct_setup_fee + ' per month', fee_style
+)  # ✅ Wrap fee
         ])
     
     if data.get('includeAcctMaint') == 'on':
@@ -1077,10 +1161,11 @@ Assistance on conduction of virtual board meeting – USD 150 per board meeting"
             ('NOSPLIT', (0, 0), (-1, -1)),
         ]))
         
-        notes_para = Paragraph("""<u>Accounting and maintenance of books of accounts:</u><br/>
-• Data entry in accounting software<br/>• Weekly processing of Bank Reconciliation<br/>• Weekly processing of Purchase invoices<br/>
-""", bullet_style)
-        
+        notes_para= tc_cell('Accounting and maintenance of books of accounts:',
+    ['\u2022 Data entry in accounting software',
+     '\u2022 Weekly processing of Bank Reconciliation',
+     '\u2022 Weekly processing of Purchase invoices'],
+    style=bullet_style, heading_underline=True)
         freq = data.get('acctMaintFrequency', 'Monthly')
         
         # Get the monthly fee from form (this is the fee that shows in last column)
@@ -1093,7 +1178,8 @@ Assistance on conduction of virtual board meeting – USD 150 per board meeting"
         
         accounting_entries.append([
             '',
-                            Paragraph(freq, ParagraphStyle('freq', fontName='MicrosoftSansSerif', fontSize=10, alignment=TA_CENTER)),  # ✅ Wrap frequency
+                            Paragraph(freq, freq_style
+),  # ✅ Wrap frequency
 
             [notes_para, Spacer(1, 4), nested_table],
             f'{accounting_monthly_fee} per month'
@@ -1107,11 +1193,13 @@ Assistance on conduction of virtual board meeting – USD 150 per board meeting"
         add_to_totals(freq, fin_stmt_fee)
         accounting_entries.append([
             '',
-                            Paragraph(freq, ParagraphStyle('freq', fontName='MicrosoftSansSerif', fontSize=10, alignment=TA_CENTER)),  # ✅ Wrap frequency
+                            Paragraph(freq, freq_style
+),  # ✅ Wrap frequency
 
             Paragraph("""• Preparation of the financial Statements as per the Indian accounting Standards<br/>
 • Liaising with auditors for audit, compliance and related matters""", bullet_style),
-             Paragraph(fin_stmt_fee + ' per month', ParagraphStyle('fee', fontName='MicrosoftSansSerif', fontSize=10, alignment=TA_CENTER))  # ✅ Wrap fee
+             Paragraph(fin_stmt_fee + ' per month', fee_style
+)  # ✅ Wrap fee
         ])
     
     if accounting_entries:
@@ -1134,10 +1222,12 @@ Assistance on conduction of virtual board meeting – USD 150 per board meeting"
         add_to_totals(freq, payroll_setup_fee)
         payroll_entries.append([
             '',
-                            Paragraph(freq, ParagraphStyle('freq', fontName='MicrosoftSansSerif', fontSize=10, alignment=TA_CENTER)),  # ✅ Wrap frequency
+                            Paragraph(freq, freq_style
+),  # ✅ Wrap frequency
 
             'Payroll Setup (Scope as per Annexure 2)',
-             Paragraph(payroll_setup_fee + ' per month', ParagraphStyle('fee', fontName='MicrosoftSansSerif', fontSize=10, alignment=TA_CENTER))  # ✅ Wrap fee
+             Paragraph(payroll_setup_fee + ' per month', fee_style
+)  # ✅ Wrap fee
         ])
     
     if data.get('includeShopPOSH') == 'on':
@@ -1148,11 +1238,16 @@ Assistance on conduction of virtual board meeting – USD 150 per board meeting"
         add_to_totals(freq, shop_posh_fee)
         payroll_entries.append([
             '',
-                            Paragraph(freq, ParagraphStyle('freq', fontName='MicrosoftSansSerif', fontSize=10, alignment=TA_CENTER)),  # ✅ Wrap frequency
+                            Paragraph(freq, freq_style
+),  # ✅ Wrap frequency
 
-            Paragraph("""1. Obtaining Shop and establishment registration under Karnataka Shop and establishment act<br/>
-2. Drafting of POSH (Prevention of Sexual Harassment at Workplace) policy""", normal_style),
-             Paragraph(shop_posh_fee + ' per month', ParagraphStyle('fee', fontName='MicrosoftSansSerif', fontSize=10, alignment=TA_CENTER))  # ✅ Wrap fee
+            tc_cell('Shop & Establishment and POSH Compliance:', [
+    '1. Obtaining Shop and establishment registration under Karnataka Shop and establishment act',
+    '2. Drafting of POSH (Prevention of Sexual Harassment at Workplace) policy'
+],heading_black=True)
+,
+             Paragraph(shop_posh_fee + ' per month', fee_style
+)  # ✅ Wrap fee
         ])
     
     if data.get('includePayrollProc') == 'on':
@@ -1187,8 +1282,7 @@ Assistance on conduction of virtual board meeting – USD 150 per board meeting"
             ('RIGHTPADDING', (0, 0), (-1, -1), 3),
         ]))
         
-        payroll_notes_para = Paragraph("Payroll Processing** (Scope as per Annexure 3)", normal_style)
-        
+        payroll_notes_para = tc_cell('Payroll Processing** (Scope as per Annexure 3)',heading_black=True)        
         freq = data.get('payrollProcFrequency', 'Monthly')
         
         # Get the monthly fee from form (this is the fee that shows in last column)
@@ -1201,7 +1295,8 @@ Assistance on conduction of virtual board meeting – USD 150 per board meeting"
         
         payroll_entries.append([
             '',
-                           Paragraph(freq, ParagraphStyle('freq', fontName='MicrosoftSansSerif', fontSize=10, alignment=TA_CENTER)),  # ✅ Wrap frequency
+                           Paragraph(freq, freq_style
+),  # ✅ Wrap frequency
 
             [payroll_notes_para, Spacer(1, 4), nested_payroll_table],
             f'{payroll_monthly_fee} per month'
@@ -1215,15 +1310,18 @@ Assistance on conduction of virtual board meeting – USD 150 per board meeting"
         add_to_totals(freq, labour_fee)
         payroll_entries.append([
             '',
-                            Paragraph(freq, ParagraphStyle('freq', fontName='MicrosoftSansSerif', fontSize=10, alignment=TA_CENTER)),  # ✅ Wrap frequency
+                            Paragraph(freq, freq_style
+),  # ✅ Wrap frequency
 
-            Paragraph("""Labour Law Compliances- Payments and return filing under:<br/>
-• Provident Fund<br/>
-• Employees State Insurance Corporation<br/>
-• Profession Tax<br/>
-• Labor Welfare Fund<br/>
-(for employees upto 20 – fixed fee)""", bullet_style),
-             Paragraph(labour_fee + ' per month', ParagraphStyle('fee', fontName='MicrosoftSansSerif', fontSize=10, alignment=TA_CENTER))  # ✅ Wrap fee
+            tc_cell('Labour Law Compliances- Payments and return filing under:', [
+    '\u2022 Provident Fund',
+    '\u2022 Employees State Insurance Corporation',
+    '\u2022 Profession Tax',
+    '\u2022 Labor Welfare Fund',
+    '(for employees upto 20 \u2013 fixed fee)'
+], style=bullet_style,heading_black=True),
+             Paragraph(labour_fee + ' per month', fee_style
+)  # ✅ Wrap fee
         ])
     
     if data.get('includeAnnualReturns') == 'on':
@@ -1234,14 +1332,17 @@ Assistance on conduction of virtual board meeting – USD 150 per board meeting"
         add_to_totals(freq, annual_ret_fee)
         payroll_entries.append([
             '',
-                            Paragraph(freq, ParagraphStyle('freq', fontName='MicrosoftSansSerif', fontSize=10, alignment=TA_CENTER)),  # ✅ Wrap frequency
+                            Paragraph(freq, freq_style
+),  # ✅ Wrap frequency
 
-            Paragraph("""Annual Return under the following labor law compliances:<br/>
-•Sexual Harassment of Women at Workplace Act, 2013<br/>
-• Shop and Establishment Act<br/>
-• Maternity Act<br/>
-• Gratuity Act""", bullet_style),
-            Paragraph(annual_ret_fee+ ' per month', ParagraphStyle('fee', fontName='MicrosoftSansSerif', fontSize=10, alignment=TA_CENTER))  # ✅ Wrap fee
+            tc_cell('Annual Return under the following labor law compliances:', [
+    '\u2022 Sexual Harassment of Women at Workplace Act, 2013',
+    '\u2022 Shop and Establishment Act',
+    '\u2022 Maternity Act',
+    '\u2022 Gratuity Act'
+], style=bullet_style,heading_black=True),
+            Paragraph(annual_ret_fee+ ' per month', fee_style
+)  # ✅ Wrap fee
         ])
     
     if payroll_entries:
@@ -1282,8 +1383,8 @@ Assistance on conduction of virtual board meeting – USD 150 per board meeting"
             
             ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor("#FFFFFF")),
             ('TEXTCOLOR', (0, 0), (-1, 0), colors.black),
-            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-             ('FONTSIZE', (0, 0), (3, 0), 10),
+            ('FONTNAME', (0, 0), (-1, 0), 'Roboto-Medium'),
+             ('FONTSIZE', (0, 0), (3, 0), 11),
              
              
             ('ALIGN', (1, 0), (3, -1), 'CENTER'),
@@ -1392,20 +1493,24 @@ complexity of transactions.""", italic_style))
                 benchmark_fee = benchmark_fee + ' per business activity'
             tp_data.append([
                 Paragraph('<font color="#C00000" face="Roboto-Bold"><b>Benchmarking</b></font>', normal_style),
-                Paragraph('One-time', ParagraphStyle('freq', fontName='MicrosoftSansSerif', fontSize=10, alignment=TA_CENTER)),
-                Paragraph(f"""1. Assistance in conducting Functional, Asset and Risk Analysis of the proposed transaction to be entered between related parties.<br/>
+                Paragraph('One-time', freq_style
+),
+               Paragraph(f"""<font color="#777777" size="9">1. Assistance in conducting Functional, Asset and Risk Analysis of the proposed transaction to be entered between related parties.<br/>
 2. Assisting in arriving at the arm's length price or margin range that may be applicable to the proposed transaction. Arm's Length is price that {company_name} would have charged any other non related party/clients globally for similar services. This is a legal requirement from Indian Income tax to ensure Indian revenue department is not a loss of tax revenue. and<br/>
-Preparation of final benchmarking report*.""", normal_style),
-                 Paragraph(benchmark_fee, ParagraphStyle('fee', fontName='MicrosoftSansSerif', fontSize=10, alignment=TA_CENTER))  # ✅ Wrap fee
+Preparation of final benchmarking report*.</font>""", normal_style),
+                 Paragraph(benchmark_fee, fee_style
+)  # ✅ Wrap fee
             ])
 
         if data.get('includeIntercompany') == 'on':
             interco_fee = format_currency(data.get('intercompanyAgreementFee', '0')) or '1500'
             tp_data.append([
                 Paragraph('<font color="#C00000" face="Roboto-Bold"><b>Inter-company agreement</b></font>', normal_style),
-                Paragraph('One-time', ParagraphStyle('freq', fontName='MicrosoftSansSerif', fontSize=10, alignment=TA_CENTER)),
-                Paragraph("""Drafting and finalizing of Inter-company service agreement covering detailed description of service to be provided, components to be included while calculating cost of services, Invoicing period, Receivable cycle, withholding, ownership rights, effective date of agreement, indemnity etc. in compliance with the Transfer Pricing regulations defined under Income tax laws and other applicable Indian laws""", normal_style),
-                  Paragraph(interco_fee+ ' per activity', ParagraphStyle('fee', fontName='MicrosoftSansSerif', fontSize=10, alignment=TA_CENTER))  # ✅ Wrap fee
+                Paragraph('One-time', freq_style
+),
+                Paragraph(f"""<font color="#777777" size="9">Drafting and finalizing of Inter-company service agreement covering detailed description of service to be provided, components to be included while calculating cost of services, Invoicing period, Receivable cycle, withholding, ownership rights, effective date of agreement, indemnity etc. in compliance with the Transfer Pricing regulations defined under Income tax laws and other applicable Indian laws</font>""", normal_style),
+                  Paragraph(interco_fee+ ' per activity', fee_style
+)  # ✅ Wrap fee
             ])
 
         tp_total = 0
@@ -1434,8 +1539,8 @@ Preparation of final benchmarking report*.""", normal_style),
             table_style_tp = [
                 ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor("#FFFFFF")),
                 ('TEXTCOLOR', (0, 0), (-1, 0), colors.black),
-                ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-                ('FONTSIZE', (0, 0), (3, 0), 10),
+                ('FONTNAME', (0, 0), (-1, 0), 'Roboto-Medium'),
+                ('FONTSIZE', (0, 0), (3, 0), 12),
                ('FONTSIZE', (0, 1), (-1, -1), 8),
 # Body alignment
 ('ALIGN', (0, 0), (0, 0), 'LEFT'),          # header row - services col
@@ -1646,8 +1751,8 @@ def generate_proposal_word():
 
         def _sp(sa=6):   return _p(sa=sa)
         def _h1(text):   return _p(text, bold=True, size_pt=12, color_hex='C00000', font='Roboto', sb=12, sa=10)
-        def _h2(text):   return _p(text, bold=True, size_pt=10, color_hex='C00000', font='Roboto', sb=10, sa=6, li=4)
-        def _body(text): return _p(text, size_pt=10, font='Roboto', align='both', sa=2)
+        def _h2(text):   return _p(text, bold=True, size_pt=11, color_hex='C00000', font='Roboto', sb=10, sa=6, li=4)
+        def _body(text): return _p(text, size_pt=11, font='Roboto', align='both', sa=2)
         def _bold(text): return _p(text, bold=True, size_pt=10, font='Roboto', align='both', sa=2)
         def _ital(text, size_pt=10): return _p(text, italic=True, size_pt=size_pt, font='Roboto', sb=2, sa=2)
         def _bul(text):  return _p(text, size_pt=10, font='Roboto', align='both', li=10, fi=-10, sa=2)
