@@ -290,7 +290,7 @@ def build_pdf_elements(data):
     normal_style = ParagraphStyle(
         'NormalCustom',
         parent=styles['Normal'],
-        fontSize=12,
+        fontSize=11,
         leading=13,
         fontName='Roboto',
         textColor=colors.HexColor("#444444"),
@@ -334,7 +334,7 @@ def build_pdf_elements(data):
     leading=13,
     fontName='MicrosoftSansSerif',
     textColor=colors.HexColor("#000000"),
-    alignment=TA_JUSTIFY,
+    alignment=TA_LEFT,
     leftIndent=15,        # ← text 10pt se start hoga
     firstLineIndent=-10,  # ← bullet 10pt peeche jaayega (hanging indent)
     rightIndent=0,
@@ -359,7 +359,7 @@ def build_pdf_elements(data):
     leftIndent=15,
     firstLineIndent=-10,
     rightIndent=0,
-    spaceAfter=3,
+    spaceAfter=6,
 )       
 
     fee_style = ParagraphStyle( 
@@ -432,17 +432,28 @@ def build_pdf_elements(data):
          s = style or normal_style
          color = '#555555' if heading_black else ('#555555' if heading_underline else '#C00000')
          if heading_underline:
-           content = f'<font color="{color}" face="Roboto-Bold" size="10"><b><u>{heading}</u></b></font>'
+           heading_content = f'<font color="{color}" face="Roboto-Bold" size="10"><b><u>{heading}</u></b></font>'
          else:
-            content = f'<font color="{color}" face="Roboto-Bold" size="10"><b>{heading}</b></font>'
-
-        
+            heading_content = f'<font color="{color}" face="Roboto-Bold" size="10"><b>{heading}</b></font>'
+         heading_style = ParagraphStyle(
+        'TCHead',
+        parent=styles['Normal'],
+        fontSize=10,
+        leading=13,
+        fontName='Roboto-Bold',
+        leftIndent=0,
+        firstLineIndent=0,
+        alignment=TA_LEFT,
+        spaceAfter=2,
+    )
+         result = [Paragraph(heading_content, heading_style)]
 
          if body_lines:
             if isinstance(body_lines, str):
                body_lines = [body_lines]
-            content += '<br/>' + '<br/>'.join([f'<font color="#777777" size="9">{line}</font>' for line in body_lines])
-         return Paragraph(content, s)
+            for line in body_lines:
+               result.append(Paragraph(f'<font color="#777777" size="9">{line}</font>', s))
+         return result
     # ==================== PAGE 1 - COVER PAGE ====================
     cover_image_path = None
     for ext in ['cover_image.png', 'cover_image.jpg', 'cover_image.jpeg']:
