@@ -313,16 +313,23 @@
                         <input type="text" id="clientDesignation" name="clientDesignation" required>
                     </div>
                 </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="clientCompany">Client Company Name *</label>
-                        <input type="text" id="clientCompany" name="clientCompany" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="proposalDate">Proposal Date *</label>
-                        <input type="date" id="proposalDate" name="proposalDate" required>
-                    </div>
-                </div>
+               <div class="form-row">
+    <div class="form-group">
+        <label for="clientCompany">Client Company Name *</label>
+        <input type="text" id="clientCompany" name="clientCompany" required 
+               oninput="checkCompanyLength(this)">
+        <small id="companyNameNote" style="color:#667eea; font-size:0.82em; margin-top:4px; display:block;">
+            ℹ️ Max 27 characters recommended — longer names will split to next line in Word document.
+        </small>
+        <small id="companyNameWarn" style="color:#C00000; font-size:0.82em; margin-top:2px; display:none;">
+            ⚠️ <b><span id="companyCharCount">0</span> characters</b> — name may split to next line in Word doc.
+        </small>
+    </div>
+    <div class="form-group">
+        <label for="proposalDate">Proposal Date *</label>
+        <input type="date" id="proposalDate" name="proposalDate" required>
+    </div>
+</div>
                 <div class="form-row">
     <div class="form-group">
         <label for="clientAddress1">Address Line 1 *</label>
@@ -353,11 +360,13 @@
     </div>
 </div>
                     <div class="form-group">
-                        <label for="scopeOfServices">Scope of Services Description</label>
-                        <textarea id="scopeOfServices" name="scopeOfServices" placeholder="Describe the scope of work..."></textarea>
-                    </div>
-                </div>
-            </div>
+    <label>Scope of Services</label>
+    <div class="nested-table-container">
+        <div id="scopeEntriesContainer"></div>
+        <button type="button" class="add-entry-btn" onclick="addScopeEntry()">+ Add Point</button>
+    </div>
+    <input type="hidden" id="scopeOfServices" name="scopeOfServices">
+</div>
 
             <!-- A. One Time Handover Service -->
             <div class="section">
@@ -1068,6 +1077,43 @@
                 }
             }
         }
+        let scopeEntryCount = 0;
+
+function addScopeEntry(defaultValue = '') {
+    const container = document.getElementById('scopeEntriesContainer');
+    const entryDiv = document.createElement('div');
+    entryDiv.className = 'nested-entry';
+    entryDiv.style.gridTemplateColumns = '1fr auto';
+    entryDiv.innerHTML = `
+        <div class="form-group">
+            <input type="text" class="scope-input" 
+                   placeholder="Enter scope point..." 
+                   style="width:100%"
+                   value="${defaultValue}"
+                   oninput="collectScopeData()">
+        </div>
+        <div class="form-group" style="display:flex;align-items:flex-end;">
+            <button type="button" class="remove-entry-btn" onclick="removeScopeEntry(this)">Remove</button>
+        </div>
+    `;
+    container.appendChild(entryDiv);
+    scopeEntryCount++;
+    collectScopeData();
+}
+
+function removeScopeEntry(btn) {
+    const rows = document.querySelectorAll('#scopeEntriesContainer .nested-entry');
+    if (rows.length > 1) {
+        btn.closest('.nested-entry').remove();
+        collectScopeData();
+    }
+}
+
+function collectScopeData() {
+    const inputs = document.querySelectorAll('.scope-input');
+    const lines = Array.from(inputs).map(i => i.value.trim()).filter(Boolean);
+    document.getElementById('scopeOfServices').value = lines.join('\n');
+}
 
         function addAccountingEntry(defaultTransactions = '', defaultFee = '') {
             const container = document.getElementById('accountingEntriesContainer');
@@ -1398,6 +1444,7 @@ document.addEventListener('input', function(e) {
 });
 
 updateFeeSummary();
+addScopeEntry();
     </script>
 </body>
 </html>
