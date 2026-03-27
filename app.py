@@ -466,7 +466,7 @@ def build_pdf_elements(data):
             if isinstance(body_lines, str):
                body_lines = [body_lines]
             for line in body_lines:
-               result.append(Paragraph(f'<font color="#777777" size="9">{line}</font>', s))
+               result.append(Paragraph(f'<font color="#777777" size="10">{line}</font>', s))
          return result
     # ==================== PAGE 1 - COVER PAGE ====================
     cover_image_path = None
@@ -1040,7 +1040,7 @@ tc_cell('1) Advance tax Compliances',
             tc_cell('2) TDS compliances:',
     ['\u2022 Calculation and Payment of TDS',
      '\u2022 Filing of TDS Returns',
-     '<font face="Roboto-Italic">(The above excludes cost of revisions of TDS returns. The fee quote for the same shall be shared if applicable)</font>'],
+     '<font face="Roboto-Italic" size="10">(The above excludes cost of revisions of TDS returns. The fee quote for the same shall be shared if applicable)</font>'],
     style=bullet_style, heading_underline=True),
                         Paragraph(tds_fee + ' per month', fee_style
 )  # ✅ Wrap fee
@@ -2347,12 +2347,12 @@ def generate_proposal_word():
                      count = label_counts[svc_label]
                      if count > 1:
                         svc_cell = {
-                                'paragraphs': [_p(svc_label, size_pt=10, color_hex='C00000', font='Roboto', align='center')],
+                                'paragraphs': [_p(svc_label, size_pt=11, color_hex='C00000', font='Roboto', align='center')],
                                 'valign': 'center',
                                 'vspan': 'start'}
                      else:   
                          svc_cell = {
-                                'paragraphs': [_p(svc_label, size_pt=10, color_hex='C00000', font='Roboto', align='center')],
+                                'paragraphs': [_p(svc_label, size_pt=11, color_hex='C00000', font='Roboto', align='center')],
                                 'valign': 'center'
                             }   
                   else:
