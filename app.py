@@ -1835,13 +1835,40 @@ def generate_proposal_word():
             p.append(pPr)
             return p 
         def _h1(text):   return _p(text, bold=True, size_pt=13, color_hex='C00000', font='Roboto', sb=12, sa=10)
-        def _h2(text):   return _p(text, bold=True, size_pt=12, color_hex='C00000', font='Roboto', sb=10, sa=6, li=4)
+        def _h2(text):   return _p(text, bold=True, size_pt=12, color_hex='C00000', font='Roboto', sb=10, sa=6, li=0)
         def _body(text): return _p(text, size_pt=11, font='Roboto', align='left', li=0, sb=0, sa=2)
         def _bold(text): return _p(text, bold=True, size_pt=10, font='Roboto', align='left', li=0, sb=0, sa=2)
         def _ital(text, size_pt=10): return _p(text, italic=True, size_pt=size_pt, font='Roboto', li=0, sb=1, sa=1)
-        def _bul(text):  return _p(text, size_pt=10, color_hex='777777', font='Roboto', align='left', li=14, fi=-14 , sb=0, sa=3)
-        def _bul(text):  return _p(text, size_pt=10, color_hex='777777', font='Roboto', align='left', li=14, fi=-14 , sb=0, sa=3)
-        def _bul11(text): return _p(text, size_pt=11, font='Roboto', align='left', li=14, fi=-14, sb=0, sa=3)
+        def _bul(text, size_pt=10, color_hex='777777'):
+            p = OxmlElement('w:p')
+            pPr = OxmlElement('w:pPr')
+            numPr = OxmlElement('w:numPr')
+            ilvl = OxmlElement('w:ilvl'); ilvl.set(qn('w:val'), '0')
+            numId_el = OxmlElement('w:numId'); numId_el.set(qn('w:val'), '99')
+            numPr.append(ilvl); numPr.append(numId_el)
+            pPr.append(numPr)
+            spacing = OxmlElement('w:spacing')
+            spacing.set(qn('w:before'), '0')
+            spacing.set(qn('w:after'), '60')
+            spacing.set(qn('w:line'), '240')
+            spacing.set(qn('w:lineRule'), 'auto')
+            pPr.append(spacing)
+            cs = OxmlElement('w:contextualSpacing')
+            cs.set(qn('w:val'), '0')
+            pPr.append(cs)
+            p.append(pPr)
+            clean = text.lstrip('•').lstrip('\u2022').strip()
+            if clean:
+                r = OxmlElement('w:r')
+                r.append(_make_rPr(size_pt=size_pt, color_hex=color_hex, font_name='Roboto'))
+                t = OxmlElement('w:t')
+                t.set('{http://www.w3.org/XML/1998/namespace}space', 'preserve')
+                t.text = clean
+                r.append(t); p.append(r)
+            return p
+
+        def _bul11(text):
+            return _bul(text, size_pt=11, color_hex='444444')
 
         def _note_block(items):
             out = [OxmlElement('w:p')]
@@ -1852,8 +1879,7 @@ def generate_proposal_word():
             t = OxmlElement('w:t'); t.text = 'Note:'; r.append(t); out[0].append(r)
             out.append(_sp(0))
             for item in items:
-                  out.append(_p(f'\u2022 {item}', bold=False, italic=False, size_pt=10,
-                      font='Roboto', align='left', li=14, fi=-14, sa=2))
+                  out.append(_bul(item, size_pt=10, color_hex='444444'))
             out.append(_sp(1))
             return out
 
@@ -2201,7 +2227,7 @@ def generate_proposal_word():
                     lbl_paras = [_p(lbl_lines[0], size_pt=11, color_hex='C00000', font='Roboto', sa=2)]
                     for lbl_line in lbl_lines[1:]:
                       if lbl_line.strip():
-                       lbl_paras.append(_p(lbl_line, size_pt=10, color_hex='777777', font='Roboto', li=10, fi=-10, sa=2))
+                       lbl_paras.append(_p(lbl_line, size_pt=10, color_hex='777777'))
                     opt_rows.append([
     {'paragraphs': lbl_paras, 'valign': 'top'},
     {'paragraphs': [_p(fee, size_pt=10, align='center', color_hex='777777', font='Roboto')], 'valign': 'center'}
@@ -2504,6 +2530,59 @@ def generate_proposal_word():
                                 szCs = OxmlElement('w:szCs'); szCs.set(qn('w:val'), '52'); rPr.append(szCs)
                             break
         except: pass
+
+        try:
+            from docx.oxml import parse_xml as _parse_xml
+            _nsmap = 'xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"'
+            _abstract_xml = (
+                f'<w:abstractNum {_nsmap} w:abstractNumId="99">'
+                '<w:multiLevelType w:val="hybridMultilevel"/>'
+                '<w:lvl w:ilvl="0">'
+                '<w:start w:val="1"/>'
+                '<w:numFmt w:val="bullet"/>'
+                '<w:lvlText w:val="\u2022"/>'
+                '<w:lvlJc w:val="left"/>'
+                '<w:pPr><w:ind w:left="360" w:hanging="360"/></w:pPr>'
+                '<w:rPr>'
+                '<w:rFonts w:ascii="Roboto" w:hAnsi="Roboto"/>'
+                '<w:sz w:val="20"/><w:szCs w:val="20"/>'
+                '</w:rPr>'
+                '</w:lvl>'
+                '</w:abstractNum>'
+            )
+            _num_xml = (
+                f'<w:num {_nsmap} w:numId="99">'
+                '<w:abstractNumId w:val="99"/>'
+                '</w:num>'
+            )
+            _numbering_part = doc.part.numbering_part
+            if _numbering_part is None:
+                from docx.opc.packuri import PackURI
+                _full_xml = (
+                    f'<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+                    f'<w:numbering {_nsmap}>'
+                    f'{_abstract_xml}{_num_xml}'
+                    f'</w:numbering>'
+                )
+                _elem = _parse_xml(_full_xml.encode('utf-8'))
+                from docx.parts.numbering import NumberingPart
+                _np = NumberingPart(
+                    PackURI('/word/numbering.xml'),
+                    'application/vnd.openxmlformats-officedocument.wordprocessingml.numbering+xml',
+                    _elem,
+                    doc.part.package
+                )
+                doc.part.relate_to(
+                    _np,
+                    'http://schemas.openxmlformats.org/officeDocument/2006/relationships/numbering'
+                )
+            else:
+                _root = _numbering_part._element
+                _root.append(_parse_xml(_abstract_xml.encode('utf-8')))
+                _root.append(_parse_xml(_num_xml.encode('utf-8')))
+            print('✅ Bullet numbering injected (numId=99)')
+        except Exception as _e:
+            print(f'⚠️ Numbering warning: {_e}')
 
         doc.save(output_path)
         print(f'✅ Word document saved: {output_path}')
