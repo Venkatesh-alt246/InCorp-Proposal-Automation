@@ -1930,7 +1930,7 @@ def generate_proposal_word():
                             b = OxmlElement(f'w:{s}')
                             b.set(qn('w:val'), 'single')
                             b.set(qn('w:sz'), '4')
-                            b.set(qn('w:color'), 'AAAAAA')
+                            b.set(qn('w:color'), '000000')
                             tcB.append(b)
                          tcPr.append(tcB)
                          vm = OxmlElement('w:vMerge')  # no val = continuation
@@ -2381,7 +2381,7 @@ def generate_proposal_word():
                      count = label_counts[svc_label]
                      if count > 1:
                         svc_cell = {
-                                'paragraphs':[_p(fee_display,size_pt=10,align='center',color_hex='777777',font='Roboto')],
+                                'paragraphs':[_p(svc_label, size_pt=11, color_hex='C00000', font='Roboto', align='center')],
                                 'valign': 'center',
                                 'vspan': 'start'}
                      else:   
